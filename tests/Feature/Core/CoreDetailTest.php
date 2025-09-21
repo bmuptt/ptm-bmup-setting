@@ -71,3 +71,35 @@ test('returns 404 when core not exists', function () {
             'message' => 'Core not found'
         ]);
 });
+
+test('can get core detail with HTML description', function () {
+    // Arrange
+    $htmlDescription = '<p style="color: #FF0000;">This is a <strong>bold</strong> paragraph.</p>';
+    
+    Core::create([
+        'id' => 0,
+        'name' => 'Test Core',
+        'logo' => null,
+        'description' => $htmlDescription,
+        'address' => 'Test Address',
+        'maps' => null,
+        'primary_color' => '#3B82F6',
+        'secondary_color' => '#1E40AF',
+        'created_by' => 0,
+        'updated_by' => null,
+    ]);
+
+    // Act
+    $response = $this->call('GET', '/api/setting/core', [], ['token' => 'test-token']);
+
+    // Assert
+    $response->assertStatus(200)
+        ->assertJson([
+            'success' => true,
+            'data' => [
+                'id' => 0,
+                'name' => 'Test Core',
+                'description' => $htmlDescription,
+            ]
+        ]);
+});

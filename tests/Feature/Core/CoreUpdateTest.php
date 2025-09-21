@@ -316,12 +316,137 @@ test('returns validation error when status_logo is missing', function () {
     // Assert
     $response->assertStatus(400)
         ->assertJson([
-            'success' => false,
-            'message' => 'Validation failed'
-        ])
-        ->assertJsonStructure([
             'errors' => [
-                'status_logo'
+                'Status logo is required'
             ]
         ]);
+});
+
+test('can update core with safe HTML description', function () {
+    // Arrange
+    Core::create([
+        'id' => 0,
+        'name' => 'Test Core',
+        'logo' => null,
+        'description' => 'Old Description',
+        'address' => 'Test Address',
+        'maps' => null,
+        'primary_color' => '#3B82F6',
+        'secondary_color' => '#1E40AF',
+        'created_by' => 0,
+        'updated_by' => null,
+    ]);
+
+    $htmlDescription = '<p style="color: #FF0000;">This is a <strong>bold</strong> paragraph with <em>italic</em> text.</p><p style="background-color: #FFFF00;">Another paragraph with background color.</p>';
+
+    $updateData = [
+        'name' => 'Updated Core',
+        'description' => $htmlDescription,
+        'status_logo' => '0',
+    ];
+
+    // Act
+    $response = $this->call('PATCH', '/api/setting/core', $updateData, ['token' => 'test-token']);
+
+    // Assert
+    $response->assertStatus(200)
+        ->assertJson([
+            'success' => true,
+            'message' => 'Core updated successfully',
+            'data' => [
+                'id' => 0,
+                'name' => 'Updated Core',
+            ]
+        ]);
+
+    $this->assertDatabaseHas('cores', [
+        'id' => 0,
+        'name' => 'Updated Core',
+        'updated_by' => 1,
+    ]);
+
+    // Check that HTML was sanitized and stored
+    $updatedCore = Core::find(0);
+    expect($updatedCore->description)->toContain('<p style="color: #FF0000">');
+    expect($updatedCore->description)->toContain('<strong>bold</strong>');
+    expect($updatedCore->description)->toContain('<em>italic</em>');
+    expect($updatedCore->description)->toContain('background-color: #FFFF00');
+});
+
+test('sanitizes dangerous HTML tags and attributes', function () {
+    // Arrange
+    Core::create([
+        'id' => 0,
+        'name' => 'Test Core',
+        'logo' => null,
+        'description' => 'Old Description',
+        'address' => 'Test Address',
+        'maps' => null,
+        'primary_color' => '#3B82F6',
+        'secondary_color' => '#1E40AF',
+        'created_by' => 0,
+        'updated_by' => null,
+    ]);
+
+    $dangerousHtml = '<script>alert("XSS")</script><p style="color: #FF0000;">Safe content</p><img src="javascript:alert(1)" onerror="alert(1)">';
+
+    $updateData = [
+        'name' => 'Updated Core',
+        'description' => $dangerousHtml,
+        'status_logo' => '0',
+    ];
+
+    // Act
+    $response = $this->call('PATCH', '/api/setting/core', $updateData, ['token' => 'test-token']);
+
+    // Assert
+    $response->assertStatus(200);
+
+    // Check that dangerous content was removed
+    $updatedCore = Core::find(0);
+    expect($updatedCore->description)->not->toContain('<script>');
+    expect($updatedCore->description)->not->toContain('alert("XSS")');
+    expect($updatedCore->description)->not->toContain('javascript:');
+    expect($updatedCore->description)->not->toContain('onerror=');
+    
+    // Safe content should remain
+    expect($updatedCore->description)->toContain('<p style="color: #FF0000">Safe content</p>');
+});
+
+test('can update core with very long description', function () {
+    // Arrange
+    Core::create([
+        'id' => 0,
+        'name' => 'Test Core',
+        'logo' => null,
+        'description' => 'Old Description',
+        'address' => 'Test Address',
+        'maps' => null,
+        'primary_color' => '#3B82F6',
+        'secondary_color' => '#1E40AF',
+        'created_by' => 0,
+        'updated_by' => null,
+    ]);
+
+    $longDescription = str_repeat('<p>This is a very long description. </p>', 1000); // Very long content
+
+    $updateData = [
+        'name' => 'Updated Core',
+        'description' => $longDescription,
+        'status_logo' => '0',
+    ];
+
+    // Act
+    $response = $this->call('PATCH', '/api/setting/core', $updateData, ['token' => 'test-token']);
+
+    // Assert
+    $response->assertStatus(200)
+        ->assertJson([
+            'success' => true,
+            'message' => 'Core updated successfully'
+        ]);
+
+    // Check that long description was stored
+    $updatedCore = Core::find(0);
+    expect($updatedCore->description)->toContain('<p>This is a very long description. </p>');
 });

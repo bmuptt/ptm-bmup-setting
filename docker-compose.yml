@@ -40,6 +40,7 @@ services:
       - QUEUE_CONNECTION=${QUEUE_CONNECTION}
       - CACHE_STORE=${CACHE_STORE}
       - MEMCACHED_HOST=${MEMCACHED_HOST}
+      - TINYMCE_API_KEY=${TINYMCE_API_KEY}
     depends_on:
       - ptm_bmup_setting_db
     networks:

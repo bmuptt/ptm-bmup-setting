@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Constants\UserConstants;
 use App\Repositories\Contracts\CoreRepositoryInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -45,10 +46,8 @@ class CoreService
         $updateData = $data;
         $statusLogo = 0; // Default: no change
 
-        // Add updated_by if user ID is provided
-        if ($userId) {
-            $updateData['updated_by'] = $userId;
-        }
+        // Add updated_by (use user ID or default to anonymous user)
+        $updateData['updated_by'] = $userId ?? UserConstants::ANONYMOUS_USER_ID;
 
         // Handle logo logic based on status_logo flag
         if (isset($data['status_logo'])) {

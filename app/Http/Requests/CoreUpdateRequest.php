@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Services\HtmlSanitizerService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -63,15 +64,27 @@ class CoreUpdateRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation()
+    {
+        // Sanitize HTML content in description field
+        if ($this->has('description') && !empty($this->description)) {
+            $sanitizer = new HtmlSanitizerService();
+            $this->merge([
+                'description' => $sanitizer->sanitize($this->description)
+            ]);
+        }
+    }
+
+    /**
      * Handle a failed validation attempt.
      */
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(
             response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors()->all()
             ], 400)
         );
     }
