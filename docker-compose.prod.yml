@@ -1,0 +1,9 @@
+services:
+  ptm_bmup_setting:
+    restart: always
+
+  ptm_bmup_setting_db:
+    restart: always
+
+  ptm_bmup_setting_nginx:
+    restart: always
