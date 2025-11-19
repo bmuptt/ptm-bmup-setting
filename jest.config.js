@@ -14,7 +14,9 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'html'],
   setupFilesAfterEnv: ['<rootDir>/tests/test-util.ts'],
   testTimeout: 30000,
-  maxWorkers: 1, // Run tests sequentially to avoid database conflicts
+  // Allow parallel execution for better performance
+  // For database-per-worker setup, uncomment maxWorkers: 1 and use --runInBand
+  // maxWorkers: 1, // Uncomment to run tests sequentially if database conflicts occur
   forceExit: true, // Force exit after tests complete
   detectOpenHandles: true, // Detect open handles
 };

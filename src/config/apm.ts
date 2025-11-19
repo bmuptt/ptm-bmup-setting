@@ -8,17 +8,19 @@ if (config.NODE_ENV === 'testing') {
   console.log('🚫 APM disabled in testing environment');
 } else {
   // Initialize APM
+  // IMPORTANT: APM must be started before Express to properly instrument HTTP requests
+  // Mengikuti konfigurasi dari be-app-management yang sudah terbukti bekerja
   apmAgent = apm.start({
     serviceName: 'ptm-bmup-setting',
+    apiKey: config.APM_API_KEY_SETTING,
     serverUrl: config.APM_SERVER_URL,
     environment: config.NODE_ENV,
-    active: true,
-    captureBody: 'all',
-    captureHeaders: true,
+    logLevel: 'info',
+    captureBody: 'all', // Capture request/response body
+    captureHeaders: true, // Capture headers
     captureExceptions: true,
     captureSpanStackTraces: true,
-    transactionSampleRate: 1.0,
-    logLevel: 'info',
+    transactionSampleRate: 1.0, // 100% sampling
   });
 
   // Log APM status

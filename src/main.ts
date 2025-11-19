@@ -10,6 +10,7 @@ import { verifyCoreToken } from './middleware/auth.middleware';
 
 // Import routes
 import coreRoutes from './routes/core.routes';
+import memberRoutes from './routes/member.routes';
 
 // Initialize Express app
 const app = express();
@@ -23,6 +24,8 @@ app.use(cors({
     ? ['https://yourdomain.com'] // Replace with your production domain
     : true, // Allow all origins in development
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'traceparent', 'tracestate'],
+  exposedHeaders: ['traceparent', 'tracestate'],
 }));
 
 // Method override middleware (for _method field)
@@ -53,6 +56,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/setting/core', coreRoutes);
+app.use('/api/setting/members', memberRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -65,6 +69,7 @@ app.get('/', (req, res) => {
       health: '/health',
       api: `api`,
       core: `api/setting/core`,
+      members: `api/setting/members`,
       docs: '/api-docs',
     },
   });

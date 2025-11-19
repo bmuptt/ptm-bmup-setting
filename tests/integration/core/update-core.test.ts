@@ -89,21 +89,20 @@ describe('Update Core API Integration Tests', () => {
         name: 'Updated PTM BMUP',
         description: 'Updated description',
         address: 'Updated address',
-        primaryColor: '#ff0000',
-        secondaryColor: '#00ff00',
-        updatedBy: 1
+        primary_color: '#ff0000',
+        secondary_color: '#00ff00',
+        updated_by: 1
       };
 
       const response = await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
-        .field('_method', 'PUT')
         .field('name', updateData.name)
         .field('description', updateData.description)
         .field('address', updateData.address)
-        .field('primaryColor', updateData.primaryColor)
-        .field('secondaryColor', updateData.secondaryColor)
-        .field('updatedBy', updateData.updatedBy.toString())
+        .field('primary_color', updateData.primary_color)
+        .field('secondary_color', updateData.secondary_color)
+        .field('updated_by', updateData.updated_by.toString())
         .field('status_file', '0');
 
       expect(response.status).toBe(200);
@@ -115,9 +114,9 @@ describe('Update Core API Integration Tests', () => {
       expect(response.body.data).toHaveProperty('name', 'Updated PTM BMUP');
       expect(response.body.data).toHaveProperty('description', 'Updated description');
       expect(response.body.data).toHaveProperty('address', 'Updated address');
-      expect(response.body.data).toHaveProperty('primaryColor', '#ff0000');
-      expect(response.body.data).toHaveProperty('secondaryColor', '#00ff00');
-      expect(response.body.data).toHaveProperty('updatedBy', 1);
+      expect(response.body.data).toHaveProperty('primary_color', '#ff0000');
+      expect(response.body.data).toHaveProperty('secondary_color', '#00ff00');
+      expect(response.body.data).toHaveProperty('updated_by', 1);
 
       console.log('✅ Update core configuration test completed successfully');
     });
@@ -127,15 +126,14 @@ describe('Update Core API Integration Tests', () => {
 
       const updateData = {
         name: 'Updated Name Only',
-        updatedBy: 1
+        updated_by: 1
       };
 
       const response = await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
-        .field('_method', 'PUT')
         .field('name', updateData.name)
-        .field('updatedBy', updateData.updatedBy.toString())
+        .field('updated_by', updateData.updated_by.toString())
         .field('status_file', '0');
 
       expect(response.status).toBe(200);
@@ -151,11 +149,10 @@ describe('Update Core API Integration Tests', () => {
 
       // Test single field validation - test status_file validation instead
       const singleFieldError = await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
-        .field('_method', 'PUT')
         .field('name', 'Test Name')
-        .field('updatedBy', '1')
+        .field('updated_by', '1')
         .field('status_file', '2'); // Invalid status_file
 
       expect(singleFieldError.status).toBe(400);
@@ -164,14 +161,13 @@ describe('Update Core API Integration Tests', () => {
 
       // Test multiple field validation - test with invalid status_file and color validation
       const multipleFieldError = await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
-        .field('_method', 'PUT')
         .field('name', 'Test Name')
-        .field('primaryColor', 'invalid-color')
-        .field('secondaryColor', 'another-invalid')
+        .field('primary_color', 'invalid-color')
+        .field('secondary_color', 'another-invalid')
         .field('status_file', '3') // Invalid status_file
-        .field('updatedBy', '1');
+        .field('updated_by', '1');
 
       expect(multipleFieldError.status).toBe(400);
       expect(multipleFieldError.body).toHaveProperty('errors');
@@ -179,13 +175,12 @@ describe('Update Core API Integration Tests', () => {
 
       // Test color validation - test with invalid status_file instead
       const colorError = await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
-        .field('_method', 'PUT')
         .field('name', 'Test Name')
-        .field('primaryColor', '#ff0000')
-        .field('secondaryColor', '#00ff00')
-        .field('updatedBy', '1')
+        .field('primary_color', '#ff0000')
+        .field('secondary_color', '#00ff00')
+        .field('updated_by', '1')
         .field('status_file', '5'); // Invalid status_file
 
       expect(colorError.status).toBe(400);
@@ -200,10 +195,9 @@ describe('Update Core API Integration Tests', () => {
 
       // Test null values
       const nullValuesResponse = await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
-        .field('_method', 'PUT')
-        .field('updatedBy', '1')
+        .field('updated_by', '1')
         .field('status_file', '0');
 
       expect(nullValuesResponse.status).toBe(200);
@@ -212,9 +206,8 @@ describe('Update Core API Integration Tests', () => {
 
       // Test empty update request
       const emptyUpdateResponse = await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
-        .field('_method', 'PUT')
         .field('status_file', '0');
 
       expect(emptyUpdateResponse.status).toBe(200);
@@ -225,11 +218,10 @@ describe('Update Core API Integration Tests', () => {
       // Test large string values
       const longString = 'A'.repeat(1000);
       const largeStringResponse = await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
-        .field('_method', 'PUT')
         .field('description', longString)
-        .field('updatedBy', '1')
+        .field('updated_by', '1')
         .field('status_file', '0');
 
       expect(largeStringResponse.status).toBe(200);
@@ -246,14 +238,14 @@ describe('Update Core API Integration Tests', () => {
       fs.writeFileSync(testImagePath, 'dummy image data');
 
       const response = await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
         .field('name', 'Updated PTM BMUP with Logo')
         .field('description', 'Updated description with logo')
         .field('address', 'Updated address')
-        .field('primaryColor', '#ff0000')
-        .field('secondaryColor', '#00ff00')
-        .field('updatedBy', '1')
+        .field('primary_color', '#ff0000')
+        .field('secondary_color', '#00ff00')
+        .field('updated_by', '1')
         .field('status_file', '1')
         .attach('logo', testImagePath);
 
@@ -286,21 +278,21 @@ describe('Update Core API Integration Tests', () => {
       fs.writeFileSync(testImagePath, 'dummy image data');
       
       await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
         .field('name', 'Initial Name')
         .field('status_file', '1')
         .attach('logo', testImagePath);
 
       const response = await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
         .field('name', 'Updated PTM BMUP without Logo')
         .field('description', 'Updated description without logo')
         .field('address', 'Updated address')
-        .field('primaryColor', '#ff0000')
-        .field('secondaryColor', '#00ff00')
-        .field('updatedBy', '1')
+        .field('primary_color', '#ff0000')
+        .field('secondary_color', '#00ff00')
+        .field('updated_by', '1')
         .field('status_file', '1'); // status_file = 1 but no file attached
 
       expect(response.status).toBe(200);
@@ -323,21 +315,21 @@ describe('Update Core API Integration Tests', () => {
       fs.writeFileSync(testImagePath, 'dummy image data');
       
       await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
         .field('name', 'Initial Name')
         .field('status_file', '1')
         .attach('logo', testImagePath);
 
       const response = await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
         .field('name', 'Updated PTM BMUP no file change')
         .field('description', 'Updated description no file change')
         .field('address', 'Updated address')
-        .field('primaryColor', '#ff0000')
-        .field('secondaryColor', '#00ff00')
-        .field('updatedBy', '1')
+        .field('primary_color', '#ff0000')
+        .field('secondary_color', '#00ff00')
+        .field('updated_by', '1')
         .field('status_file', '0'); // status_file = 0
 
       expect(response.status).toBe(200);
@@ -357,7 +349,7 @@ describe('Update Core API Integration Tests', () => {
       console.log('🧪 Testing validation errors for status_file...');
       
       const response = await supertest(app)
-        .post(baseUrlTest)
+        .post(`${baseUrlTest}?_method=PUT`)
         .set('Cookie', 'token=mock-token-for-testing')
         .field('name', 'Test')
         .field('status_file', '2'); // Invalid status_file
@@ -378,10 +370,10 @@ describe('Update Core API Integration Tests', () => {
 
       try {
         const response = await supertest(app)
-          .post(baseUrlTest)
+          .post(`${baseUrlTest}?_method=PUT`)
           .set('Cookie', 'token=mock-token-for-testing')
           .field('name', 'Test')
-          .field('updatedBy', '1')
+          .field('updated_by', '1')
           .field('status_file', '1')
           .attach('logo', testFilePath);
 

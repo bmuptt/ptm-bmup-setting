@@ -19,8 +19,8 @@ curl --location 'http://localhost:3200/api/setting/core?_method=PUT' \
 --form 'name="Updated PTM BMUP"' \
 --form 'description="Updated description for testing"' \
 --form 'address="Jl. Updated Address No. 456, Jakarta"' \
---form 'primaryColor="#ff5733"' \
---form 'secondaryColor="#33ff57"' \
+--form 'primary_color="#ff5733"' \
+--form 'secondary_color="#33ff57"' \
 --form 'status_file="0"'
 ```
 
@@ -45,8 +45,8 @@ curl --location 'http://localhost:3200/api/setting/core?_method=PUT' \
 --form 'name="Updated with Logo"' \
 --form 'description="Description with new logo"' \
 --form 'address="Jl. Address with Logo"' \
---form 'primaryColor="#ff0000"' \
---form 'secondaryColor="#00ff00"' \
+--form 'primary_color="#ff0000"' \
+--form 'secondary_color="#00ff00"' \
 --form 'status_file="1"' \
 --form 'logo=@"/C:/ardi/data_kerja/bmup/tugas/logo.png"'
 ```
@@ -97,8 +97,8 @@ curl --location 'http://localhost:3200/api/setting/core?_method=PUT' \
 --form 'name="Complete Update Test"' \
 --form 'description="<p>This is a <strong>complete</strong> update test with HTML content</p>"' \
 --form 'address="Jl. Complete Address No. 999, Jakarta Selatan"' \
---form 'primaryColor="#3498db"' \
---form 'secondaryColor="#e74c3c"' \
+--form 'primary_color="#3498db"' \
+--form 'secondary_color="#e74c3c"' \
 --form 'status_file="1"' \
 --form 'logo=@"/path/to/your/logo.png"'
 ```
@@ -142,7 +142,7 @@ curl --location 'http://localhost:3200/api/setting/core?_method=PUT' \
 - `name`: Core configuration name
 - `description`: Core configuration description (supports HTML)
 - `address`: Core configuration address
-- `primaryColor`: Primary color (hex format)
-- `secondaryColor`: Secondary color (hex format)
+- `primary_color`: Primary color (hex format)
+- `secondary_color`: Secondary color (hex format)
 - `status_file`: File change status (0 = no change, 1 = change)
 - `logo`: Logo image file (only when status_file = 1)

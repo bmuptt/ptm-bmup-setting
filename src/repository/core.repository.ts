@@ -28,9 +28,9 @@ export class CoreRepository implements CoreRepositoryInterface {
     description?: string;
     address?: string;
     maps?: string | null;
-    primaryColor?: string;
-    secondaryColor?: string;
-    updatedBy?: number;
+    primary_color?: string;
+    secondary_color?: string;
+    updated_by?: number;
   }) {
     return await prisma.core.update({
       where: {
@@ -38,7 +38,7 @@ export class CoreRepository implements CoreRepositoryInterface {
       },
       data: {
         ...data,
-        updatedBy: data.updatedBy || 0
+        updated_by: data.updated_by || 0
       }
     });
   }
@@ -55,10 +55,10 @@ export class CoreRepository implements CoreRepositoryInterface {
     description: string;
     address: string;
     maps?: string | null;
-    primaryColor: string;
-    secondaryColor: string;
-    createdBy: number;
-    updatedBy?: number | null;
+    primary_color: string;
+    secondary_color: string;
+    created_by: number;
+    updated_by?: number | null;
   }) {
     return await prisma.core.create({
       data

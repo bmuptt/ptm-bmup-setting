@@ -10,46 +10,72 @@ export class TestHelper {
   /**
    * Migrate dan seed ulang database untuk setiap test case
    * Seperti integration test di Laravel
+   * Optimized: Direct database operations instead of spawning npm scripts
+   * Thread-safe: Uses transaction isolation to prevent conflicts in parallel execution
    */
   static async refreshDatabase() {
     try {
-      console.log('🔄 Refreshing database...');
+      // Use transaction to ensure atomic operations and prevent conflicts in parallel execution
+      // All operations are wrapped in a single transaction for consistency
+      await prisma.$transaction(async (tx) => {
+        // Clean database terlebih dahulu
+        await tx.member.deleteMany({});
+        await tx.core.deleteMany({});
 
-      // Disconnect and reconnect to ensure clean state
-      await prisma.$disconnect();
+        // Reset sequence with error handling (safe in transaction)
+        try {
+          await tx.$executeRaw`ALTER SEQUENCE members_id_seq RESTART WITH 1;`;
+        } catch (seqError) {
+          // Sequence might not exist, ignore
+        }
 
-      // Clean database terlebih dahulu
-      await prisma.core.deleteMany({});
+        try {
+          await tx.$executeRaw`ALTER SEQUENCE cores_id_seq RESTART WITH 1;`;
+        } catch (seqError) {
+          // Sequence might not exist, ignore
+        }
 
-      // Reset sequence dengan error handling
-      try {
-        await prisma.$executeRaw`ALTER SEQUENCE cores_id_seq RESTART WITH 1;`;
-      } catch (seqError) {
+        // Seed data directly (upsert to prevent conflicts in parallel execution)
+        // Upsert ensures idempotency - safe to run multiple times
+        await tx.core.upsert({
+          where: { id: 0 },
+          update: {
+            name: 'PTM BMUP',
+            logo: null,
+            description: 'Sistem pengaturan BMUP',
+            address: 'Jl. Contoh No. 123, Jakarta',
+            maps: null,
+            primary_color: '#f86f24',
+            secondary_color: '#efbc37',
+            created_by: 0,
+            updated_by: null,
+          },
+          create: {
+            id: 0,
+            name: 'PTM BMUP',
+            logo: null,
+            description: 'Sistem pengaturan BMUP',
+            address: 'Jl. Contoh No. 123, Jakarta',
+            maps: null,
+            primary_color: '#f86f24',
+            secondary_color: '#efbc37',
+            created_by: 0,
+            updated_by: null,
+          },
+        });
+      }, {
+        timeout: 10000, // 10 second timeout
+      });
+
+      // Verify database is ready
+      const coreCount = await prisma.core.count();
+      const memberCount = await prisma.member.count();
+
+      if (coreCount !== 1 || memberCount !== 0) {
         console.log(
-          '⚠️ Sequence reset warning (might not exist):',
-          seqError.message,
+          `⚠️ Database state: Core records: ${coreCount}, Member records: ${memberCount}`,
         );
       }
-
-      // Wait a bit to ensure all connections are properly closed
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Disconnect and reconnect to ensure clean state
-      await prisma.$disconnect();
-      await prisma.$connect();
-
-      // Seed data dengan timeout yang lebih lama
-      execSync('npm run seed:core', { stdio: 'inherit', timeout: 60000 });
-
-      // Verify database is clean
-      const coreCount = await prisma.core.count();
-
-      console.log(
-        `✅ Database refreshed successfully - Core records: ${coreCount}`,
-      );
-
-      // Small delay to ensure database is fully ready
-      await new Promise((resolve) => setTimeout(resolve, 100));
     } catch (error) {
       console.error('❌ Error refreshing database:', error.message);
       throw error;
@@ -61,7 +87,8 @@ export class TestHelper {
    */
   static async cleanupDatabase() {
     try {
-      // Clean in correct order
+      // Clean in correct order (members first due to foreign key constraints)
+      await prisma.member.deleteMany({});
       await prisma.core.deleteMany({});
 
       console.log('🧹 Database cleaned up');

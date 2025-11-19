@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test:local": "dotenv -e .env.testing jest -- --runInBand --testTimeout=30000 --verbose",
+    "test:local": "dotenv -e .env.testing jest -- --testTimeout=30000 --verbose",
     "dev": "ts-node-dev --files --poll src/main.ts",
     "build": "tsc",
     "start": "nodemon dist/main.js",

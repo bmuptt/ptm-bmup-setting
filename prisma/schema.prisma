@@ -14,18 +14,37 @@ datasource db {
 }
 
 model Core {
-  id             Int      @id @default(autoincrement())
-  name           String   @db.VarChar(255)
-  logo           String?  @db.VarChar(255)
-  description    String   @db.Text
-  address        String   @db.Text
-  maps           String?  @db.VarChar(255)
-  primaryColor   String   @db.VarChar(255) @map("primary_color")
-  secondaryColor String   @db.VarChar(255) @map("secondary_color")
-  createdBy      Int      @map("created_by")
-  updatedBy      Int?     @map("updated_by")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id              Int      @id @default(autoincrement())
+  name            String   @db.VarChar(255)
+  logo            String?  @db.VarChar(255)
+  description     String   @db.Text
+  address         String   @db.Text
+  maps            String?  @db.VarChar(255)
+  primary_color   String   @db.VarChar(255)
+  secondary_color String   @db.VarChar(255)
+  created_by      Int
+  updated_by      Int?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 
   @@map("cores")
+}
+
+model Member {
+  id          Int       @id @default(autoincrement())
+  user_id     Int?      @unique
+  name        String    @db.VarChar(255)
+  username    String    @unique @db.VarChar(255)
+  gender      String    @db.VarChar(255)
+  birthdate   DateTime  @db.Date
+  address     String    @db.Text
+  phone       String    @db.VarChar(255)
+  photo       String?   @db.VarChar(255)
+  active      Boolean   @default(true)
+  created_by  Int
+  updated_by  Int?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  @@map("members")
 }

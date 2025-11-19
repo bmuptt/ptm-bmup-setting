@@ -1,5 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { config } from './environment';
+import { ResponseError } from './response-error';
+import apmAgent from './apm';
 
 // Create axios instance with default configuration
 const createAxiosInstance = (baseURL?: string): AxiosInstance => {
@@ -33,10 +35,31 @@ const createAxiosInstance = (baseURL?: string): AxiosInstance => {
         _t: Date.now(),
       };
 
+      // Add APM trace context to headers for distributed tracing
+      // This ensures external service calls are tracked as child spans with same trace ID
+      // Elastic APM will automatically create spans for HTTP requests
+      if (apmAgent && apmAgent.currentTransaction) {
+        try {
+          const transaction = apmAgent.currentTransaction();
+          if (transaction && transaction.traceparent) {
+            config.headers = config.headers || {};
+            // Add traceparent header for distributed tracing
+            config.headers['traceparent'] = transaction.traceparent;
+            
+            // Add tracestate if available
+            if (transaction.tracestate) {
+              config.headers['tracestate'] = transaction.tracestate;
+            }
+          }
+        } catch (error) {
+          // Silently fail if APM trace propagation fails (APM will handle errors internally)
+        }
+      }
+
       return config;
     },
     (error) => {
-      console.error('[HTTP Request Error]', error);
+      // Only log actual errors, not validation errors
       return Promise.reject(error);
     }
   );
@@ -44,35 +67,43 @@ const createAxiosInstance = (baseURL?: string): AxiosInstance => {
   // Response interceptor
   instance.interceptors.response.use(
     (response: AxiosResponse) => {
+      // Remove verbose logging - APM will track this
       return response;
     },
     (error: AxiosError) => {
-      // Log error
-      console.error('[HTTP Response Error]', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        url: error.config?.url,
-        method: error.config?.method,
-        data: error.response?.data,
-      });
+      const status = error.response?.status ?? 500;
 
-      // Handle specific error cases
-      const status = error.response?.status;
-      if (status === 401) {
-        console.error('Unauthorized access - check authentication');
-      } else if (status === 403) {
-        console.error('Forbidden access - insufficient permissions');
-      } else if (status === 404) {
-        console.error('Resource not found');
-      } else if (status && status >= 500) {
-        console.error('Server error occurred');
-      } else if (error.code === 'ECONNABORTED') {
-        console.error('Request timeout');
-      } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-        console.error('Connection failed - service may be down');
+      const data = error.response?.data as Record<string, unknown> | undefined;
+
+      // Only log errors (not validation errors) - APM will track full details
+      // console.error removed to reduce log volume in production
+
+      let messages: string[] = [];
+
+      if (data) {
+        const errors = data.errors;
+        if (Array.isArray(errors) && errors.length) {
+          messages = errors.map((err) => String(err));
+        } else if (typeof data.message === 'string' && data.message) {
+          messages = [data.message];
+        } else if (typeof data.error === 'string' && data.error) {
+          messages = [data.error];
+        }
       }
 
-      return Promise.reject(error);
+      if (!messages.length) {
+        if (error.code === 'ECONNABORTED') {
+          messages = ['External service timeout'];
+        } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+          messages = ['External service unreachable'];
+        } else if (status === 404) {
+          messages = ['External resource not found'];
+        } else {
+          messages = [error.message || 'External service error'];
+        }
+      }
+
+      return Promise.reject(new ResponseError(status, messages));
     }
   );
 

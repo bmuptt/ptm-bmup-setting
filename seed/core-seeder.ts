@@ -11,10 +11,10 @@ async function main() {
             description: 'Sistem pengaturan BMUP',
             address: 'Jl. Contoh No. 123, Jakarta',
             maps: null,
-            primaryColor: '#f86f24',
-            secondaryColor: '#efbc37',
-            createdBy: 0,
-            updatedBy: null,
+            primary_color: '#f86f24',
+            secondary_color: '#efbc37',
+            created_by: 0,
+            updated_by: null,
         },
     });
     

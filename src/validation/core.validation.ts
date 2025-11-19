@@ -5,8 +5,8 @@ export const updateCoreSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
   address: z.string().optional(),
-  primaryColor: z.string().optional(),
-  secondaryColor: z.string().optional(),
+  primary_color: z.string().optional(),
+  secondary_color: z.string().optional(),
   status_file: z.enum(['0', '1']).optional(),
 });
 
@@ -37,11 +37,11 @@ export const validateCoreUpdate = (data: any) => {
     errors.push('The address must be a string!');
   }
 
-  if (data.primaryColor && typeof data.primaryColor !== 'string') {
+  if (data.primary_color && typeof data.primary_color !== 'string') {
     errors.push('The primary color must be a string!');
   }
 
-  if (data.secondaryColor && typeof data.secondaryColor !== 'string') {
+  if (data.secondary_color && typeof data.secondary_color !== 'string') {
     errors.push('The secondary color must be a string!');
   }
 

@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import apm from './apm';
+import apmAgent from './apm';
 
 // Global variable to store Prisma client instance
 declare global {
@@ -16,7 +16,27 @@ const basePrismaClient = globalThis.__prisma || new PrismaClient({
   ],
 });
 
+// Store query information for APM spans
+const queryMap = new Map<string, { query: string; params: string; duration?: number }>();
+
+// Listen to query events to capture SQL statements
+(basePrismaClient as any).$on('query', (e: any) => {
+  const queryKey = `${Date.now()}-${Math.random()}`;
+  queryMap.set(queryKey, {
+    query: e.query,
+    params: e.params,
+    duration: e.duration,
+  });
+  
+  // Clean up old entries (keep only last 100)
+  if (queryMap.size > 100) {
+    const firstKey = queryMap.keys().next().value;
+    if (firstKey) queryMap.delete(firstKey);
+  }
+});
+
 // Prisma Client dengan APM Extension
+// Mengikuti pola dari be-app-management yang sudah terbukti bekerja
 const prismaWithAPM = basePrismaClient.$extends({
   query: {
     $allOperations: async ({ model, operation, args, query }) => {
@@ -24,26 +44,91 @@ const prismaWithAPM = basePrismaClient.$extends({
       const modelName = model ?? 'raw';
       const name = `prisma ${modelName}.${operation}`;
 
-      // Buat span untuk operasi database (skip jika APM null)
-      const span = apm?.startSpan(name, 'db', 'prisma', operation);
+      // Buat span untuk operasi database (skip jika apm tidak ada/testing)
+      // APM akan otomatis menambahkan span ke transaksi HTTP yang aktif jika ada
+      // Jika tidak ada transaksi aktif, span tidak akan dibuat (yang normal untuk background jobs)
+      const span = apmAgent?.startSpan(name, 'db', 'postgresql', operation) ?? null;
+
+      // Log untuk tracing
+      if (span) {
+        // Check if there's an active transaction
+        try {
+          let transaction = null;
+          if (apmAgent) {
+            // Try as function first
+            if (typeof apmAgent.currentTransaction === 'function') {
+              transaction = apmAgent.currentTransaction();
+            } 
+            // Try as property
+            else if (apmAgent.currentTransaction) {
+              transaction = apmAgent.currentTransaction;
+            }
+          }
+        } catch (e) {
+          console.log('[DB Span] Could not check transaction:', e);
+        }
+      } else {
+        console.log('[DB Span] Span not created:', {
+          hasApmAgent: !!apmAgent,
+          model: modelName,
+          operation: operation,
+        });
+      }
 
       try {
         const result = await query(args);
+        
+        // Set db context dan labels setelah query berhasil
+        if (span) {
+          // Set db context untuk proper database spans di APM
+          const recentQuery = Array.from(queryMap.values()).pop();
+          if (recentQuery) {
+            // Truncate long queries to avoid too large labels
+            const maxLength = 500;
+            const queryText = recentQuery.query.length > maxLength 
+              ? recentQuery.query.substring(0, maxLength) + '...' 
+              : recentQuery.query;
+            
+            span.setDbContext({
+              type: 'postgresql',
+              instance: process.env.POSTGRES_DB,
+              user: process.env.POSTGRES_USER,
+              statement: queryText,
+            });
+          } else {
+            // Set basic db context if no query found
+            span.setDbContext({
+              type: 'postgresql',
+              instance: process.env.POSTGRES_DB,
+              user: process.env.POSTGRES_USER,
+            });
+          }
+          
+          // Set labels for better filtering in APM
+          span.setLabel('model', modelName);
+          span.setLabel('operation', operation);
+          span.setLabel('success', 'true');
+          
+          // Catat jumlah record yang diubah (untuk update/delete/createMany)
+          const count = (args as any)?.data?.length ?? undefined;
+          if (count !== undefined) {
+            span.setLabel('items', String(count));
+          }
+        }
+        
         return result;
       } catch (err: any) {
         // Tandai error di span
-        span?.setLabel('error', String(err?.message ?? err));
+        if (span) {
+          span.setLabel('error', String(err?.message ?? err));
+          span.setLabel('success', 'false');
+        }
         throw err;
       } finally {
-        // Label ringan saja; hindari perekaman argumen besar/PII
-        span?.setLabel('model', modelName);
-        span?.setLabel('operation', operation);
-        
-        // Catat jumlah record yang diubah (untuk update/delete/createMany)
-        const count = (args as any)?.data?.length ?? undefined;
-        if (count !== undefined) span?.setLabel('items', count);
-        
-        span?.end();
+        // End span
+        if (span) {
+          span.end();
+        }
       }
     },
   },
@@ -56,10 +141,6 @@ if (process.env.NODE_ENV === 'development') {
   globalThis.__prisma = basePrismaClient;
 }
 
-// Log database connection
-console.log('Database connection initialized with APM spans', {
-  environment: process.env.NODE_ENV,
-  database: process.env.POSTGRES_DB,
-});
+// Database connection initialized (no log to reduce production log volume)
 
 export default prismaWithAPM;
