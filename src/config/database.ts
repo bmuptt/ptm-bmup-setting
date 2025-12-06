@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 import apmAgent from './apm';
 
 // Global variable to store Prisma client instance
@@ -6,8 +8,13 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+
 // Base Prisma Client
 const basePrismaClient = globalThis.__prisma || new PrismaClient({
+  adapter,
   log: [
     { emit: 'event', level: 'query' },
     { emit: 'event', level: 'error' },

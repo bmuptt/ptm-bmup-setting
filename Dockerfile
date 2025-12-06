@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:24.11.1-alpine
 
 # Set timezone to Asia/Jakarta (UTC+7)
 ENV TZ=Asia/Jakarta
@@ -10,6 +10,8 @@ WORKDIR /usr/src/app
 COPY . .
 
 RUN npm install
+RUN npx prisma generate
 RUN npm run build
 
 CMD ["npm", "start"]
+

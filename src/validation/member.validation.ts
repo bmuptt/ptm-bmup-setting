@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
-import { ResponseError } from '../config/response-error';
 import memberRepository from '../repository/member.repository';
+import { ResponseError } from '../config/response-error';
 
 // Schema for member creation validation
 export const createMemberSchema = z.object({
@@ -400,9 +400,124 @@ export const memberListQuerySchema = z.object({
     message: 'Order direction must be either asc or desc'
   }).optional(),
   
-  active: z.enum(['active', 'inactive', 'all'], {
-    message: 'Active filter must be one of: active, inactive, all'
-  }).optional()
+  active: z.string()
+    .optional()
+    .refine(val => !val || ['active', 'inactive', 'all'].includes(val), {
+      message: 'Active filter must be one of: active, inactive, all'
+    })
+});
+
+// Schema for member load more query validation
+export const memberLoadMoreQuerySchema = z.object({
+  limit: z.coerce
+    .number()
+    .int('Limit must be an integer')
+    .min(1, 'Limit must be at least 1')
+    .optional()
+    .default(10),
+  
+  cursor: z.coerce
+    .number()
+    .int('Cursor must be an integer')
+    .optional(),
+  
+  search: z.string()
+    .optional()
+    .transform(val => val?.trim() || undefined),
+});
+
+export const validateMemberLoadMoreQuery = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const validatedQuery = memberLoadMoreQuerySchema.parse(req.query);
+    Object.assign(req.query, validatedQuery);
+    next();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errors: string[] = [];
+      
+      const errorIssues = error.issues;
+      
+      if (Array.isArray(errorIssues)) {
+        errorIssues.forEach(err => {
+          const fieldName = err.path && err.path.length > 0 ? err.path.join('.') : 'query';
+          errors.push(`${fieldName}: ${err.message}`);
+        });
+      }
+      
+      if (errors.length === 0) {
+        errors.push('Invalid query parameters');
+      }
+      
+      return next(new ResponseError(400, errors));
+    }
+    next(error);
+  }
+};
+
+// Schema for member ID validation
+export const memberIdSchema = z.object({
+  id: z.coerce
+    .number()
+    .optional()
+    .nullable()
+    .transform(val => val === 0 || !val ? null : val),
+  
+  name: z.string()
+    .min(1, 'Name is required')
+    .max(255, 'Name cannot exceed 255 characters'),
+  
+  username: z.string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(255, 'Username cannot exceed 255 characters')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
+  
+  gender: z.enum(['Male', 'Female'], {
+    message: 'Gender must be either Male or Female'
+  }),
+  
+  birthdate: z.string()
+    .min(1, 'Birthdate is required')
+    .refine((val) => {
+      const date = new Date(val);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // End of today
+      return date < today;
+    }, 'Birthdate must be before today')
+    .refine((val) => {
+      const date = new Date(val);
+      return !isNaN(date.getTime());
+    }, 'Birthdate must be a valid date'),
+  
+  address: z.string()
+    .min(1, 'Address is required')
+    .max(500, 'Address cannot exceed 500 characters'),
+  
+  phone: z.string()
+    .min(1, 'Phone is required')
+    .max(20, 'Phone cannot exceed 20 characters'),
+  
+  photo: z.string()
+    .optional()
+    .nullable()
+    .transform(val => val === 'null' || val === '' ? null : val),
+  
+  active: z.union([
+    z.boolean(),
+    z.number().transform(val => {
+      if (val === 1) return true;
+      if (val === 0) return false;
+      throw new Error('Active must be true or false');
+    }),
+    z.string().transform(val => {
+      if (val === 'true' || val === '1') return true;
+      if (val === 'false' || val === '0') return false;
+      throw new Error('Active must be true or false');
+    })
+  ])
 });
 
 // Validation middleware for member list query parameters
@@ -477,6 +592,11 @@ export const handleMemberMulterError = (
   res: Response,
   next: NextFunction
 ) => {
+  // Pass ResponseError to the global error handler
+  if (err instanceof ResponseError) {
+    return next(err);
+  }
+
   if (err && typeof err === 'object') {
     const error = err as { code?: string; message?: string };
     
@@ -493,13 +613,14 @@ export const handleMemberMulterError = (
       return res.status(400).json({ errors: [error.message] });
     }
   }
-  next();
+  next(err);
 };
 
 export default {
   createMemberSchema,
   updateMemberSchema,
   memberListQuerySchema,
+  memberLoadMoreQuerySchema,
   validateMemberCreate,
   validateMemberUpdate,
   validateMemberCreateMiddleware,
@@ -507,5 +628,6 @@ export default {
   validateMemberGetByIdMiddleware,
   validateMemberDeleteMiddleware,
   validateMemberListQuery,
+  validateMemberLoadMoreQuery,
   handleMemberMulterError,
 };

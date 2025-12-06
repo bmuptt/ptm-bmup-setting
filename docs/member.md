@@ -20,7 +20,7 @@ Get a paginated list of members with optional search functionality.
 
 **Query Parameters:**
 - `page` (optional): Page number (default: 1)
-- `limit` or `per_page` (optional): Items per page (default: 10, max: 100)
+- `limit` or `per_page` (optional): Items per page (default: 10)
 - `search` (optional): Search term for name, username, or phone
 - `order_field` or `orderField` (optional): Field to order by. Valid values: `id`, `name`, `username`, `gender`, `birthdate`, `address`, `phone`, `active`, `created_at`, `updated_at`
 - `order_dir` or `orderDir` (optional): Order direction. Valid values: `asc`, `desc` (default: `asc` when `order_field` is provided)
@@ -56,6 +56,60 @@ Get a paginated list of members with optional search functionality.
   },
   "message": "Members retrieved successfully"
 }
+```
+
+### 1.1 Load More Members (Cursor Pagination)
+**GET** `/api/setting/members/load-more`
+
+Get members using cursor-based pagination. This is efficient for infinite scrolling/load more functionality.
+Results are always ordered by ID descending (newest first).
+
+**Query Parameters:**
+- `limit` (optional): Items per page (default: 10, max: 100)
+- `cursor` (optional): The `nextCursor` value from the previous response. Leave empty for the first page.
+- `search` (optional): Search term for name, username, or phone
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 10,
+      "user_id": 123,
+      "name": "John Doe",
+      "username": "johndoe",
+      "gender": "Male",
+      "birthdate": "1990-01-01T00:00:00.000Z",
+      "address": "Jl. Contoh No. 123, Jakarta",
+      "phone": "081234567890",
+      "photo": "http://localhost:3200/storage/images/members/photo-1234567890.jpg",
+      "active": true,
+      "created_by": 1,
+      "updated_by": null,
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "nextCursor": 5,
+    "hasMore": true,
+    "limit": 10
+  },
+  "message": "Members retrieved successfully"
+}
+```
+
+**Example cURL:**
+```bash
+# First page
+curl -X GET "http://localhost:3200/api/setting/members/load-more?limit=10"
+
+# Next page (using cursor from previous response)
+curl -X GET "http://localhost:3200/api/setting/members/load-more?limit=10&cursor=5"
+
+# With search
+curl -X GET "http://localhost:3200/api/setting/members/load-more?limit=10&search=John"
 ```
 
 ### 2. Get Member by ID
@@ -588,3 +642,5 @@ curl --location --request POST 'http://localhost:3200/api/setting/members/create
 ```bash
 curl --location --request DELETE 'http://localhost:3200/api/setting/members/1'
 ```
+
+

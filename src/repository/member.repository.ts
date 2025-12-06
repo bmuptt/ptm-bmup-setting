@@ -104,6 +104,91 @@ export class MemberRepository implements MemberRepositoryInterface {
   }
 
   /**
+   * Load more members with cursor-based pagination
+   * @param limit - Items per page
+   * @param cursor - Cursor for pagination (last item id)
+   * @param search - Search term (optional)
+   * @returns Paginated members data with next cursor
+   */
+  async loadMore(
+    limit: number,
+    cursor?: number,
+    search?: string
+  ) {
+    try {
+       // Build where clause
+      const whereClause: Prisma.MemberWhereInput = {};
+  
+      // Search by name, username, or phone
+      if (search) {
+        whereClause.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { username: { contains: search, mode: 'insensitive' } },
+          { phone: { contains: search, mode: 'insensitive' } }
+        ];
+      }
+  
+      // Cursor pagination logic
+      if (cursor) {
+        const cursorMember = await prisma.member.findUnique({
+          where: { id: cursor },
+          select: { name: true, id: true }
+        });
+
+        if (cursorMember) {
+          const cursorCondition = {
+            OR: [
+              { name: { gt: cursorMember.name } },
+              {
+                name: cursorMember.name,
+                id: { lt: cursorMember.id }
+              }
+            ]
+          };
+
+          if (whereClause.OR) {
+             whereClause.AND = [
+               { OR: whereClause.OR },
+               cursorCondition
+             ];
+             delete whereClause.OR;
+          } else {
+            Object.assign(whereClause, cursorCondition);
+          }
+        }
+      }
+  
+      const data = await prisma.member.findMany({
+        where: whereClause,
+        take: limit + 1, // Fetch one extra to check if there are more
+        orderBy: [
+          { name: 'asc' },
+          { id: 'desc' }
+        ]
+      });
+  
+      let hasMore = false;
+      let nextCursor: number | null = null;
+  
+      if (data.length > limit) {
+        hasMore = true;
+        data.pop(); // Remove the extra item
+        nextCursor = data[data.length - 1]?.id ?? null;
+      } else if (data.length > 0) {
+        nextCursor = data[data.length - 1]?.id ?? null; // Last item id, but hasMore is false so it might not be used
+      }
+  
+      return {
+        data: data,
+        nextCursor: nextCursor,
+        hasMore
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
    * Create new member
    * @param data - Member data to create
    * @returns Created member data
@@ -205,3 +290,14 @@ export class MemberRepository implements MemberRepositoryInterface {
 }
 
 export default new MemberRepository();
+
+
+
+
+
+
+
+
+
+
+

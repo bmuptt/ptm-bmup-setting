@@ -60,6 +60,32 @@ export class MemberService {
   }
 
   /**
+   * Load more members with cursor-based pagination
+   * @param limit - Items per page
+   * @param cursor - Cursor for pagination
+   * @param search - Search term (optional)
+   * @returns Paginated members data with next cursor
+   */
+  async loadMoreMembers(
+    limit: number,
+    cursor?: number,
+    search?: string
+  ) {
+    const result = await memberRepository.loadMore(limit, cursor, search);
+
+    return {
+      success: true,
+      data: result.data,
+      meta: {
+        nextCursor: result.nextCursor,
+        hasMore: result.hasMore,
+        limit
+      },
+      message: 'Members retrieved successfully',
+    };
+  }
+
+  /**
    * Create new member
    * @param data - Member data to create
    * @param file - Uploaded photo file (optional)
@@ -366,4 +392,4 @@ export class MemberService {
   }
 }
 
-export default new MemberService();
+export default new MemberService();

@@ -7,6 +7,7 @@ import {
   validateMemberDeleteMiddleware,
   validateMemberGetByIdMiddleware,
   validateMemberListQuery,
+  validateMemberLoadMoreQuery,
   validateMemberCreateUserMiddleware,
   handleMemberMulterError 
 } from '../validation/member.validation';
@@ -17,6 +18,7 @@ const memberController = new MemberController();
 
 // Member routes
 router.get('/', verifyCoreToken, validateMemberListQuery, memberController.getAllMembers.bind(memberController)); // Get all members with pagination
+router.get('/load-more', verifyCoreToken, validateMemberLoadMoreQuery, memberController.loadMoreMembers.bind(memberController)); // Load more members with cursor
 router.get('/:id', verifyCoreToken, validateMemberGetByIdMiddleware, memberController.getMemberById.bind(memberController)); // Get member by ID
 router.post('/', verifyCoreToken, uploadSingle('photo'), handleMemberMulterError, validateMemberCreateMiddleware, memberController.createMember.bind(memberController)); // Create new member
 router.put('/:id', verifyCoreToken, uploadSingle('photo'), handleMemberMulterError, validateMemberUpdateMiddleware, memberController.updateMember.bind(memberController)); // Update member
@@ -29,3 +31,4 @@ router.post(
 );
 
 export default router;
+

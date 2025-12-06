@@ -13,7 +13,7 @@ export const errorHandler = (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+) => {
   // Check if response has already been sent
   if (res.headersSent) {
     // If headers already sent, just pass to Express default error handler
@@ -41,10 +41,7 @@ export const errorHandler = (
     return;
   }
 
-  // Handle custom ResponseError
   if (error instanceof ResponseError) {
-    // Log error for debugging
-
     // Capture error in APM (only for 500 errors and 403)
     if (apmAgent && (error.status >= 500 || error.status === 403)) {
       apmAgent.captureError(error, {

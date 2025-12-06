@@ -10,7 +10,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Core {
@@ -47,4 +46,4 @@ model Member {
   updated_at  DateTime  @updatedAt
 
   @@map("members")
-}
+}

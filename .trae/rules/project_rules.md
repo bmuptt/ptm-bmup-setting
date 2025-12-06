@@ -22,6 +22,7 @@
     ]
 }
 - rata rata patternnya: route, middleware, validation, controller, service, repository
+- basic command test: npm run test:local
 
 folder:
 - src\config: untuk semua config

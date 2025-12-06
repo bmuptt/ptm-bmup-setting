@@ -16,4 +16,10 @@ export interface MemberRepositoryInterface {
   delete(id: number): Promise<void>;
   findByUsername(username: string): Promise<Prisma.MemberGetPayload<{}> | null>;
   findByUserId(userId: number): Promise<Prisma.MemberGetPayload<{}> | null>;
-}
+  loadMore(
+    limit: number,
+    cursor?: number,
+    search?: string,
+    token?: string
+  ): Promise<{ data: Prisma.MemberGetPayload<{}>[]; nextCursor: number | null; hasMore: boolean }>;
+}

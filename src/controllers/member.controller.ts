@@ -40,6 +40,26 @@ export default class MemberController {
   }
 
   /**
+   * Load more members with cursor-based pagination
+   */
+  async loadMoreMembers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const cursor = req.query.cursor ? parseInt(req.query.cursor as string) : undefined;
+      const search = req.query.search as string;
+
+      const result = await memberService.loadMoreMembers(
+        limit,
+        cursor,
+        search
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Create new member
    */
   async createMember(req: Request, res: Response, next: NextFunction): Promise<void> {
