@@ -28,6 +28,7 @@ export const config = {
   // APM Configuration
   APM_API_KEY_SETTING: process.env.APM_API_KEY_SETTING || '',
   APM_SERVER_URL: process.env.APM_SERVER_URL || 'http://localhost:8200',
+  APP_APM_ACTIVE: process.env.APP_APM_ACTIVE === 'true',
 };
 
 // Validate required environment variables
