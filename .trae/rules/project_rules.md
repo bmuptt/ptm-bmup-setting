@@ -23,6 +23,7 @@
 }
 - rata rata patternnya: route, middleware, validation, controller, service, repository
 - basic command test: npm run test:local
+- usahakan jangan taruh validation di file controller atau file service
 
 folder:
 - src\config: untuk semua config

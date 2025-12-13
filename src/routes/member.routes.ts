@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import MemberController from '../controllers/member.controller';
-import { uploadSingle } from '../config/multer';
+import { uploadSingle, uploadExcel } from '../config/multer';
 import { 
   validateMemberCreateMiddleware, 
   validateMemberUpdateMiddleware, 
@@ -9,7 +9,9 @@ import {
   validateMemberListQuery,
   validateMemberLoadMoreQuery,
   validateMemberCreateUserMiddleware,
-  handleMemberMulterError 
+  handleMemberMulterError,
+  handleExcelMulterError,
+  validateMemberImportMiddleware
 } from '../validation/member.validation';
 import { verifyCoreToken } from '../middleware/auth.middleware';
 
@@ -30,5 +32,15 @@ router.post(
   memberController.createMemberUser.bind(memberController)
 );
 
+// Import members from excel
+router.post(
+  '/import-excel', 
+  verifyCoreToken, 
+  uploadExcel('file'), 
+  handleExcelMulterError, 
+  validateMemberImportMiddleware, 
+  memberController.importMembers.bind(memberController)
+);
+
 export default router;
-
+

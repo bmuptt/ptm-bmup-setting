@@ -2,6 +2,9 @@ import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
 import memberRepository from '../repository/member.repository';
 import { ResponseError } from '../config/response-error';
+import * as XLSX from 'xlsx';
+import fs from 'fs';
+import { Prisma } from '@prisma/client';
 
 // Schema for member creation validation
 export const createMemberSchema = z.object({
@@ -616,6 +619,159 @@ export const handleMemberMulterError = (
   next(err);
 };
 
+// Multer error handling middleware for excel import
+export const handleExcelMulterError = (
+  err: unknown,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (err instanceof ResponseError) {
+    return next(err);
+  }
+  if (err && typeof err === 'object') {
+    const error = err as { code?: string; message?: string };
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ errors: ['Excel file size is too large'] });
+    }
+    if (error.message === 'Only excel files are allowed!') {
+      return res.status(400).json({ errors: ['Only excel files are allowed!'] });
+    }
+    if (error.message && typeof error.message === 'string') {
+      return res.status(400).json({ errors: [error.message] });
+    }
+  }
+  next(err);
+};
+
+export const validateMemberImportMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.file) {
+      return next(new ResponseError(400, 'Excel file is required'));
+    }
+    
+    const filePath = req.file.path;
+    let workbook: XLSX.WorkBook;
+    try {
+      workbook = XLSX.readFile(filePath);
+    } catch {
+      return next(new ResponseError(400, 'Invalid Excel file'));
+    }
+    
+    const firstSheetName = workbook.SheetNames[0];
+    if (!firstSheetName) {
+      return next(new ResponseError(400, 'Excel file is empty'));
+    }
+    
+    const sheet = workbook.Sheets[firstSheetName];
+    if (!sheet) {
+      return next(new ResponseError(400, 'Excel worksheet not found'));
+    }
+    
+    const rows = XLSX.utils.sheet_to_json(sheet) as Array<Record<string, unknown>>;
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return next(new ResponseError(400, 'Excel file is empty'));
+    }
+    
+    const errors: string[] = [];
+    const membersToCreate: Prisma.MemberCreateManyInput[] = [];
+    const userId = (req as { user?: { id?: number } }).user?.id ?? 0;
+    
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i] as {
+        name?: string;
+        username?: string;
+        gender?: string;
+        birthdate?: string | number;
+        address?: string;
+        phone?: string | number;
+        active?: boolean | string | number;
+      };
+      if (!row) continue;
+      const rowNumber = i + 2;
+      
+      if (!row.name) errors.push(`Row ${rowNumber}: Name is required`);
+      if (!row.username) errors.push(`Row ${rowNumber}: Username is required`);
+      if (!row.gender || !['Male', 'Female'].includes(String(row.gender))) {
+        errors.push(`Row ${rowNumber}: Gender must be Male or Female`);
+      }
+      if (!row.address) errors.push(`Row ${rowNumber}: Address is required`);
+      if (!row.phone) errors.push(`Row ${rowNumber}: Phone is required`);
+      
+      let birthdate: Date | null = null;
+      if (!row.birthdate) {
+        errors.push(`Row ${rowNumber}: Birthdate is required`);
+      } else {
+        if (typeof row.birthdate === 'number') {
+          const date = new Date(Math.round((row.birthdate - 25569) * 86400 * 1000));
+          birthdate = date;
+        } else {
+          const s = String(row.birthdate).trim();
+          if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+            const [dd, mm, yyyy] = s.split('/');
+            birthdate = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+          } else if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+            const [dd, mm, yyyy] = s.split('-');
+            birthdate = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+          } else if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+            birthdate = new Date(s);
+          } else {
+            birthdate = new Date(s);
+          }
+        }
+        if (!birthdate || Number.isNaN(birthdate.getTime())) {
+          errors.push(`Row ${rowNumber}: Invalid birthdate format`);
+        } else if (birthdate >= new Date()) {
+          errors.push(`Row ${rowNumber}: Birthdate must be before today`);
+        }
+      }
+      
+      let active = true;
+      if (row.active !== undefined) {
+        active = row.active === true || row.active === 'true' || row.active === 1 || row.active === '1';
+      }
+      
+      if (errors.length === 0) {
+        membersToCreate.push({
+          name: String(row.name),
+          username: String(row.username),
+          gender: String(row.gender),
+          birthdate: birthdate!, 
+          address: String(row.address),
+          phone: String(row.phone),
+          active,
+          created_by: userId,
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
+      }
+    }
+    
+    if (errors.length > 0) {
+      return next(new ResponseError(400, errors));
+    }
+    
+    const usernames = membersToCreate.map(m => m.username);
+    const uniqueUsernames = new Set(usernames);
+    if (uniqueUsernames.size !== usernames.length) {
+      return next(new ResponseError(400, 'Duplicate usernames found in the file'));
+    }
+    
+    res.locals.membersToCreate = membersToCreate;
+    
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   createMemberSchema,
   updateMemberSchema,
@@ -630,4 +786,7 @@ export default {
   validateMemberListQuery,
   validateMemberLoadMoreQuery,
   handleMemberMulterError,
+  handleExcelMulterError,
+  validateMemberImportMiddleware,
+  validateMemberCreateUserMiddleware,
 };

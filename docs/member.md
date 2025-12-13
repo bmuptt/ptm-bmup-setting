@@ -1,24 +1,29 @@
 # Member API Documentation
 
 ## Overview
+
 This document describes the Member API endpoints for managing member data in the PTM BMUP Setting system.
 
 ## Base URL
+
 ```
 /api/setting/members
 ```
 
 ## Authentication
+
 Most endpoints require authentication using the `verifyCoreToken` middleware.
 
 ## Endpoints
 
 ### 1. Get All Members
+
 **GET** `/api/setting/members`
 
 Get a paginated list of members with optional search functionality.
 
 **Query Parameters:**
+
 - `page` (optional): Page number (default: 1)
 - `limit` or `per_page` (optional): Items per page (default: 10)
 - `search` (optional): Search term for name, username, or phone
@@ -27,6 +32,7 @@ Get a paginated list of members with optional search functionality.
 - `active` (optional): Filter by active status. Valid values: `active`, `inactive`, `all` (default: `all`)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -59,17 +65,20 @@ Get a paginated list of members with optional search functionality.
 ```
 
 ### 1.1 Load More Members (Cursor Pagination)
+
 **GET** `/api/setting/members/load-more`
 
 Get members using cursor-based pagination. This is efficient for infinite scrolling/load more functionality.
 Results are always ordered by ID descending (newest first).
 
 **Query Parameters:**
+
 - `limit` (optional): Items per page (default: 10, max: 100)
 - `cursor` (optional): The `nextCursor` value from the previous response. Leave empty for the first page.
 - `search` (optional): Search term for name, username, or phone
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -101,6 +110,7 @@ Results are always ordered by ID descending (newest first).
 ```
 
 **Example cURL:**
+
 ```bash
 # First page
 curl -X GET "http://localhost:3200/api/setting/members/load-more?limit=10"
@@ -113,14 +123,17 @@ curl -X GET "http://localhost:3200/api/setting/members/load-more?limit=10&search
 ```
 
 ### 2. Get Member by ID
+
 **GET** `/api/setting/members/:id`
 
 Get a specific member by their ID.
 
 **Path Parameters:**
+
 - `id`: Member ID
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -145,11 +158,13 @@ Get a specific member by their ID.
 ```
 
 ### 3. Create Member
+
 **POST** `/api/setting/members`
 
 Create a new member. Requires authentication.
 
 **Request Body:**
+
 ```json
 {
   "user_id": 123,
@@ -164,9 +179,11 @@ Create a new member. Requires authentication.
 ```
 
 **Form Data (multipart/form-data):**
+
 - `photo` (optional): Image file (JPEG, PNG, JPG, GIF, max 2MB)
 
 **Field Validation:**
+
 - `name`: Required, string, max 255 characters
 - `username`: Required, string, min 3 characters, max 255 characters, unique, alphanumeric with underscores and hyphens only (regex: `^[a-zA-Z0-9_-]+$`)
 - `gender`: Required, must be "Male" or "Female"
@@ -177,6 +194,7 @@ Create a new member. Requires authentication.
 - `active`: Required, boolean or string ("true"/"false"/"1"/"0")
 
 **Response (201 Created):**
+
 ```json
 {
   "success": true,
@@ -201,17 +219,21 @@ Create a new member. Requires authentication.
 ```
 
 ### 4. Update Member
+
 **PUT** `/api/setting/members/:id?_method=PUT`
 
 Update an existing member. Requires authentication.
 
 **Path Parameters:**
+
 - `id`: Member ID
 
 **Query Parameters:**
+
 - `_method=PUT`: Required for method-override (use POST method with this parameter)
 
 **Required Fields:**
+
 - `name`: Required, string, max 255 characters
 - `username`: Required, string, min 3 characters, max 255 characters, unique (but allowed if same as current member)
 - `gender`: Required, must be "Male" or "Female"
@@ -221,14 +243,17 @@ Update an existing member. Requires authentication.
 - `status_file`: Required, must be "0" (no photo change) or "1" (change photo)
 
 **Optional Fields:**
+
 - `photo`: Optional, image file (only used if status_file="1")
 - `active`: Optional, boolean
 
 **Form Data (multipart/form-data):**
+
 - All required fields must be sent
 - `photo` (optional): Image file (JPEG, PNG, JPG, GIF, max 2MB) - only used if status_file="1"
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -253,14 +278,17 @@ Update an existing member. Requires authentication.
 ```
 
 ### 5. Delete Member
+
 **DELETE** `/api/setting/members/:id`
 
 Delete a member. Requires authentication.
 
 **Path Parameters:**
+
 - `id`: Member ID
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -271,6 +299,7 @@ Delete a member. Requires authentication.
 ## Error Responses
 
 ### 400 Bad Request (Validation Error)
+
 ```json
 {
   "errors": [
@@ -282,6 +311,7 @@ Delete a member. Requires authentication.
 ```
 
 ### 404 Not Found
+
 ```json
 {
   "success": false,
@@ -291,6 +321,7 @@ Delete a member. Requires authentication.
 ```
 
 ### 400 Bad Request (Duplicate Data)
+
 ```json
 {
   "success": false,
@@ -299,6 +330,7 @@ Delete a member. Requires authentication.
 ```
 
 ### 500 Internal Server Error
+
 ```json
 {
   "success": false,
@@ -310,6 +342,7 @@ Delete a member. Requires authentication.
 ## File Upload
 
 ### Photo Upload
+
 - Supported formats: JPEG, PNG, JPG, GIF
 - Maximum file size: 2MB
 - Files are stored in `storage/images/members/` directory
@@ -319,6 +352,7 @@ Delete a member. Requires authentication.
 ## Database Schema
 
 ### Members Table
+
 ```sql
 CREATE TABLE members (
   id SERIAL PRIMARY KEY,
@@ -341,6 +375,7 @@ CREATE TABLE members (
 ## Integration Tests
 
 The API includes comprehensive integration tests covering:
+
 - Successful member creation with valid data
 - Validation error handling for all required fields
 - Duplicate username and user_id prevention
@@ -351,6 +386,7 @@ The API includes comprehensive integration tests covering:
 - Error response formats
 
 Run tests with:
+
 ```bash
 npm test tests/integration/member/create-member.test.ts
 ```
@@ -358,46 +394,55 @@ npm test tests/integration/member/create-member.test.ts
 ## Example Usage - cURL Commands
 
 ### 1. Get All Members
+
 ```bash
 curl --location 'http://localhost:3200/api/setting/members'
 ```
 
 ### 2. Get All Members with Pagination
+
 ```bash
 curl --location 'http://localhost:3200/api/setting/members?page=1&limit=10'
 ```
 
 ### 2a. Get All Members with Pagination using per_page
+
 ```bash
 curl --location 'http://localhost:3200/api/setting/members?page=1&per_page=10'
 ```
 
 ### 3. Get All Members with Search
+
 ```bash
 curl --location 'http://localhost:3200/api/setting/members?search=john'
 ```
 
 ### 3a. Get All Members with Sorting (camelCase)
+
 ```bash
 curl --location 'http://localhost:3200/api/setting/members?orderField=name&orderDir=asc'
 ```
 
 ### 3b. Get All Members with Sorting (snake_case)
+
 ```bash
 curl --location 'http://localhost:3200/api/setting/members?order_field=name&order_dir=asc'
 ```
 
 ### 3c. Get All Members with Search, Sorting, and Pagination
+
 ```bash
 curl --location 'http://localhost:3200/api/setting/members?search=john&order_field=name&order_dir=asc&page=1&per_page=10&active=active'
 ```
 
 ### 4. Get Member by ID
+
 ```bash
 curl --location 'http://localhost:3200/api/setting/members/1'
 ```
 
 ### 5. Create Member (JSON)
+
 ```bash
 curl --location 'http://localhost:3200/api/setting/members' \
 --header 'Content-Type: application/json' \
@@ -413,6 +458,7 @@ curl --location 'http://localhost:3200/api/setting/members' \
 ```
 
 ### 6. Create Member with Photo Upload
+
 ```bash
 curl --location 'http://localhost:3200/api/setting/members' \
 --form 'name="John Doe"' \
@@ -426,6 +472,7 @@ curl --location 'http://localhost:3200/api/setting/members' \
 ```
 
 ### 7. Create Member with Minimal Data
+
 ```bash
 curl --location 'http://localhost:3200/api/setting/members' \
 --header 'Content-Type: application/json' \
@@ -441,6 +488,7 @@ curl --location 'http://localhost:3200/api/setting/members' \
 ```
 
 ### 8. Update Member (Without Photo Upload)
+
 **Required fields**: `name`, `username`, `gender`, `birthdate`, `address`, `phone`, `status_file`
 **Required parameter**: `_method=PUT` in URL query
 
@@ -460,6 +508,7 @@ curl --location 'http://localhost:3200/api/setting/members/1?_method=PUT' \
 ```
 
 ### 9. Update Member with Photo Upload
+
 **Required fields**: `name`, `username`, `gender`, `birthdate`, `address`, `phone`, `status_file`
 **Required parameter**: `_method=PUT` in URL query
 
@@ -476,6 +525,7 @@ curl --location 'http://localhost:3200/api/setting/members/1?_method=PUT' \
 ```
 
 ### 10. Update Member (Remove Photo)
+
 **Required fields**: `name`, `username`, `gender`, `birthdate`, `address`, `phone`, `status_file`
 **Required parameter**: `_method=PUT` in URL query
 
@@ -491,6 +541,7 @@ curl --location 'http://localhost:3200/api/setting/members/1?_method=PUT' \
 ```
 
 ### 11. Update Member (JSON with All Fields)
+
 ```bash
 curl --location 'http://localhost:3200/api/setting/members/1?_method=PUT' \
 --header 'Content-Type: application/json' \
@@ -511,6 +562,7 @@ curl --location 'http://localhost:3200/api/setting/members/1?_method=PUT' \
 This API uses **PUT** instead of **PATCH** because:
 
 ### PUT (Full Update/Replace)
+
 - ✅ **Replaces the entire resource** with the provided data
 - ✅ All required fields must be sent (name, gender, birthdate, address, phone, status_file)
 - ✅ More strict and predictable behavior
@@ -518,6 +570,7 @@ This API uses **PUT** instead of **PATCH** because:
 - ✅ Better for forms where all fields are available
 
 ### PATCH (Partial Update)
+
 - ❌ Only updates provided fields
 - ❌ Some fields might not be sent
 - ❌ Less predictable (might miss required fields)
@@ -526,11 +579,13 @@ This API uses **PUT** instead of **PATCH** because:
 **In this API**: Update requires all core fields (name, username, gender, birthdate, address, phone, status_file) to be sent, making PUT more appropriate for data consistency and validation.
 
 ### Username Uniqueness Rule
+
 - Username must be **unique** across all members
 - However, **using the same username as the current member being updated is allowed** (no change)
 - Example: Updating member ID 1 with username "johndoe" is OK if member ID 1 already has username "johndoe"
 
 ### Status File Parameter
+
 - `status_file="0"`: No photo change (keep existing photo)
 - `status_file="1"`: Change photo (upload new file or remove if no file provided)
 
@@ -579,14 +634,17 @@ The repository layer supports multiple response shapes; any of these are accepte
 - Authorization/header requirements depend on Core service configuration.
 
 ### 12. Create External User for Member
+
 **POST** `/api/setting/members/create-user/:id`
 
 Create or sync a user in the external Core service for the specified member.
 
 **URL Parameter**
+
 - `id`: Member ID in this service.
 
 **Request Body**
+
 ```json
 {
   "email": "user@example.com",
@@ -595,6 +653,7 @@ Create or sync a user in the external Core service for the specified member.
 ```
 
 **Flow**
+
 - Requires authentication (`verifyCoreToken`).
 - Validates payload (`email`, `role_id`) and ensures the member exists and is not already linked to a user.
 - Uses member data (`name`, `gender`, `birthdate`) to complete the payload sent to Core.
@@ -602,6 +661,7 @@ Create or sync a user in the external Core service for the specified member.
 - Returns validation errors from Core (HTTP 400) directly in the response.
 
 **cURL**
+
 ```bash
 curl --location --request POST 'http://localhost:3200/api/setting/members/create-user/1' \
 --header 'Content-Type: application/json' \
@@ -612,6 +672,7 @@ curl --location --request POST 'http://localhost:3200/api/setting/members/create
 ```
 
 **Success Response Example**
+
 ```json
 {
   "success": true,
@@ -634,13 +695,63 @@ curl --location --request POST 'http://localhost:3200/api/setting/members/create
 ```
 
 **Error Scenarios**
+
 - `400`: invalid member ID, invalid payload, member already linked, missing required member fields, or validation errors from Core.
 - `404`: member not found.
 - Other status codes bubble up errors from the Core service.
 
 ### 13. Delete Member
+
 ```bash
 curl --location --request DELETE 'http://localhost:3200/api/setting/members/1'
 ```
 
+### 14. Import Members from Excel
 
+**POST** `/api/setting/members/import-excel`
+
+Import multiple members from an Excel file. Uses transaction (rollback all if one fails).
+
+**Headers:**
+
+- `Content-Type`: `multipart/form-data`
+- `Authorization`: `Bearer <token>`
+
+**Form Data:**
+
+- `file`: Excel file (.xlsx, .xls)
+
+**Excel Format Requirements:**
+Header row must be present with the following columns (case-sensitive):
+
+- `name` (required)
+- `username` (required, unique)
+- `gender` (required: Male/Female)
+- `birthdate` (required: accepts `DD/MM/YYYY`, `DD-MM-YYYY`, `YYYY-MM-DD`, or Excel numeric date)
+- `address` (required)
+- `phone` (required)
+- `active` (optional: true/false/1/0 (string or number), default: true)
+
+**Notes:**
+- Birthdate must be a valid date and strictly before today.
+- Duplicate usernames within the uploaded file are rejected.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "5 members imported successfully",
+  "data": {
+    "count": 5
+  }
+}
+```
+
+**cURL:**
+
+```bash
+curl --location 'http://localhost:3200/api/setting/members/import-excel' \
+--header 'Authorization: Bearer <token>' \
+--form 'file=@"/path/to/members.xlsx"'
+```

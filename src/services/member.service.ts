@@ -5,7 +5,8 @@ import { config } from '../config/environment';
 import { ResponseError } from '../config/response-error';
 import { Prisma } from '@prisma/client';
 import externalUserRepository from '../repository/external-user.repository';
-import { ExternalUserPayload, MemberExternalData, ExternalUserRecord } from '../model';
+import { ExternalUserPayload, MemberExternalData, ExternalUserRecord, MemberImportRow } from '../model';
+import * as XLSX from 'xlsx';
 
 export class MemberService {
   /**
@@ -390,6 +391,27 @@ export class MemberService {
         : null)
     );
   }
+
+
+  /**
+   * Import members from validated rows
+   * @param membersToCreate - Validated rows transformed into Prisma input
+   */
+  async importMembersFromRows(membersToCreate: Prisma.MemberCreateManyInput[]) {
+    try {
+      const count = await memberRepository.createMany(membersToCreate);
+      return {
+        success: true,
+        message: `${count} members imported successfully`,
+        data: { count }
+      };
+    } catch (err: unknown) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        throw new ResponseError(400, `Database error: Duplicate entry found (likely username or user_id)`);
+      }
+      throw err;
+    }
+  }
 }
 
-export default new MemberService();
+export default new MemberService();

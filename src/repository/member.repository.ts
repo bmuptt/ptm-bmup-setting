@@ -115,7 +115,6 @@ export class MemberRepository implements MemberRepositoryInterface {
     cursor?: number,
     search?: string
   ) {
-    try {
        // Build where clause
       const whereClause: Prisma.MemberWhereInput = {};
   
@@ -183,9 +182,6 @@ export class MemberRepository implements MemberRepositoryInterface {
         nextCursor: nextCursor,
         hasMore
       };
-    } catch (error) {
-      throw error;
-    }
   }
 
   /**
@@ -286,6 +282,27 @@ export class MemberRepository implements MemberRepositoryInterface {
       ...member,
       email: member.user_id ? emailMap.get(member.user_id) ?? null : null,
     }));
+  }
+
+  /**
+   * Create multiple members in a transaction
+   * @param data - Array of member data
+   * @returns Number of members created
+   */
+  async createMany(data: Prisma.MemberCreateManyInput[]) {
+    // We use createMany directly as it's efficient.
+    // However, to ensure "all or nothing" behavior strictly and maybe in future combine with other ops,
+    // we wrap it in a transaction (though single query is implicit transaction).
+    // But since the user asked for transaction explicitly:
+    const result = await prisma.$transaction(async (tx) => {
+      const created = await tx.member.createMany({
+        data: data,
+        skipDuplicates: false, // We want it to fail if there's a duplicate
+      });
+      return created.count;
+    });
+
+    return result;
   }
 }
 

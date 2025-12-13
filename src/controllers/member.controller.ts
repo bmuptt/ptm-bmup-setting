@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import memberService from '../services/member.service';
 import { uploadSingle } from '../config/multer';
 import { MemberExternalData } from '../model';
+import { Prisma } from '@prisma/client';
 
 export default class MemberController {
   /**
@@ -115,6 +116,19 @@ export default class MemberController {
         },
         token // Forward token to service for external API calls
       );
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Import members from Excel
+   */
+  async importMembers(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const membersToCreate = res.locals.membersToCreate as Prisma.MemberCreateManyInput[];
+      const result = await memberService.importMembersFromRows(membersToCreate);
       res.status(201).json(result);
     } catch (error) {
       next(error);

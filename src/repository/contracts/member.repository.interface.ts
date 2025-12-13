@@ -22,4 +22,5 @@ export interface MemberRepositoryInterface {
     search?: string,
     token?: string
   ): Promise<{ data: Prisma.MemberGetPayload<{}>[]; nextCursor: number | null; hasMore: boolean }>;
-}
+  createMany(data: Prisma.MemberCreateManyInput[]): Promise<number>;
+}

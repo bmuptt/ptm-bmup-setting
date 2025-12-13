@@ -9,3 +9,13 @@ export interface MemberLoadMoreResponse<T> {
   nextCursor: number | null;
   hasMore: boolean;
 }
+
+export interface MemberImportRow {
+  name: string;
+  username: string;
+  gender: string;
+  birthdate: string | number;
+  address: string;
+  phone: string | number;
+  active?: boolean | string | number;
+}
