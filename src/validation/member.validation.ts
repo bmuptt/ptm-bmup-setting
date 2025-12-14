@@ -461,6 +461,73 @@ export const validateMemberLoadMoreQuery = async (
   }
 };
 
+export const validateMemberByIdsMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const validOrderFields = ['id', 'name', 'username', 'gender', 'birthdate', 'address', 'phone', 'active', 'created_at', 'updated_at'];
+    const validOrderDirs = ['asc', 'desc'] as const;
+
+    let ids: number[] = [];
+    let orderField: string | undefined;
+    let orderDir: 'asc' | 'desc' | undefined;
+
+    if (req.method === 'POST') {
+      const body = req.body as {
+        ids?: unknown;
+        order_field?: string;
+        order_dir?: 'asc' | 'desc';
+      };
+
+      if (!body.ids) {
+        return next(new ResponseError(400, 'ids is required'));
+      }
+      if (!Array.isArray(body.ids)) {
+        return next(new ResponseError(400, 'ids must be an array'));
+      }
+      ids = body.ids
+        .map((n) => Number(n))
+        .filter((n) => Number.isInteger(n) && n > 0);
+      if (ids.length === 0) {
+        return next(new ResponseError(400, 'ids must contain at least 1 item'));
+      }
+
+      orderField = body.order_field;
+      orderDir = body.order_dir;
+    } else {
+      const idsParam = (req.query.ids as string) || '';
+      if (!idsParam) {
+        return next(new ResponseError(400, 'ids is required'));
+      }
+      ids = idsParam
+        .split(',')
+        .map((s) => Number(s.trim()))
+        .filter((n) => Number.isInteger(n) && n > 0);
+      if (ids.length === 0) {
+        return next(new ResponseError(400, 'ids must contain at least 1 item'));
+      }
+
+      orderField = (req.query.order_field as string) || (req.query.orderField as string);
+      orderDir = ((req.query.order_dir as string) || (req.query.orderDir as string)) as 'asc' | 'desc' | undefined;
+    }
+
+    const finalOrderField = validOrderFields.includes(orderField || '') ? orderField! : 'id';
+    const finalOrderDir = validOrderDirs.includes((orderDir || '') as 'asc' | 'desc') ? (orderDir as 'asc' | 'desc') : 'desc';
+
+    res.locals.byIds = {
+      ids,
+      orderField: finalOrderField,
+      orderDir: finalOrderDir,
+    };
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Schema for member ID validation
 export const memberIdSchema = z.object({
   id: z.coerce
@@ -789,4 +856,5 @@ export default {
   handleExcelMulterError,
   validateMemberImportMiddleware,
   validateMemberCreateUserMiddleware,
+  validateMemberByIdsMiddleware,
 };

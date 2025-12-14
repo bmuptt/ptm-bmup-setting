@@ -755,3 +755,56 @@ curl --location 'http://localhost:3200/api/setting/members/import-excel' \
 --header 'Authorization: Bearer <token>' \
 --form 'file=@"/path/to/members.xlsx"'
 ```
+
+### 15. Get Members By IDs
+
+**GET** `/api/setting/members/by-ids`
+
+Mengambil list member berdasarkan kumpulan `id` tertentu. Default sorting `order_field=id` dan `order_dir=desc`.
+
+**Query (GET):**
+
+- `ids` (required): daftar ID, dipisahkan koma. Contoh: `1,2,3`
+- `order_field` (optional): salah satu dari `id,name,username,gender,birthdate,address,phone,active,created_at,updated_at` (default: `id`)
+- `order_dir` (optional): `asc` atau `desc` (default: `desc`)
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 12,
+      "name": "Ardiansyah Pratama",
+      "username": "ardi",
+      "gender": "male",
+      "birthdate": "1995-10-12",
+      "address": "Jl. Contoh No. 1",
+      "phone": "08123456789",
+      "photo": "https://example.com/photo.jpg",
+      "active": true
+    }
+  ],
+  "message": "OK"
+}
+```
+
+**Response (400 Validation):**
+
+```json
+{
+  "errors": [
+    "ids is required",
+    "ids must contain at least 1 item"
+  ]
+}
+```
+
+**cURL (GET):**
+
+```bash
+curl -X GET "http://localhost:3200/api/setting/members/by-ids?ids=12,14,15" \
+--header 'Accept: application/json'
+```
+

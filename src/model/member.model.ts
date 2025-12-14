@@ -19,3 +19,9 @@ export interface MemberImportRow {
   phone: string | number;
   active?: boolean | string | number;
 }
+
+export interface MemberByIdsParams {
+  ids: number[];
+  orderField?: 'id' | 'name' | 'username' | 'gender' | 'birthdate' | 'address' | 'phone' | 'active' | 'created_at' | 'updated_at';
+  orderDir?: 'asc' | 'desc';
+}

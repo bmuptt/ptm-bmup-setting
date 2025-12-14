@@ -412,6 +412,20 @@ export class MemberService {
       throw err;
     }
   }
+
+  async getMembersByIds(
+    ids: number[],
+    orderField?: string,
+    orderDir?: 'asc' | 'desc',
+    token?: string
+  ) {
+    const result = await memberRepository.findByIds(ids, orderField, orderDir, token);
+    return {
+      success: true,
+      data: result.data,
+      message: 'OK',
+    };
+  }
 }
 
 export default new MemberService();

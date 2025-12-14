@@ -238,6 +238,35 @@ export class MemberRepository implements MemberRepositoryInterface {
     });
   }
 
+  async findByIds(
+    ids: number[],
+    orderField?: string,
+    orderDir?: 'asc' | 'desc',
+    token?: string
+  ) {
+    const whereClause: Prisma.MemberWhereInput = {
+      id: { in: Array.from(new Set(ids)).filter((n) => Number.isInteger(n) && n > 0) }
+    };
+
+    const orderBy: Prisma.MemberOrderByWithRelationInput[] = [];
+    const validOrderFields = ['id', 'name', 'username', 'gender', 'birthdate', 'address', 'phone', 'active', 'created_at', 'updated_at'];
+    const validOrderDirs = ['asc', 'desc'] as const;
+
+    if (orderField && validOrderFields.includes(orderField) && orderDir && validOrderDirs.includes(orderDir)) {
+      orderBy.push({ [orderField]: orderDir } as Prisma.MemberOrderByWithRelationInput);
+    }
+    orderBy.push({ id: 'desc' });
+
+    const data = await prisma.member.findMany({
+      where: whereClause,
+      orderBy
+    });
+
+    return {
+      data
+    };
+  }
+
   /**
    * Find member by user ID
    * @param userId - User ID

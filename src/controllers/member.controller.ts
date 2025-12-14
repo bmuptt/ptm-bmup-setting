@@ -134,4 +134,19 @@ export default class MemberController {
       next(error);
     }
   }
+
+  async getMembersByIds(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const params = res.locals.byIds as {
+        ids: number[];
+        orderField?: string;
+        orderDir?: 'asc' | 'desc';
+      };
+      const token = req.cookies?.token;
+      const result = await memberService.getMembersByIds(params.ids, params.orderField, params.orderDir, token);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
