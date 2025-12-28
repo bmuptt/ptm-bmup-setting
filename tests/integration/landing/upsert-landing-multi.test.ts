@@ -1,0 +1,47 @@
+import { TestHelper } from '../../test-util';
+import landingService from '../../../src/services/landing.service';
+import prisma from '../../../src/config/database';
+
+describe('Landing Multi Section Upsert Integration Tests', () => {
+  beforeEach(async () => {
+    await TestHelper.refreshDatabase();
+  });
+
+  afterAll(async () => {
+    await TestHelper.cleanupAll();
+  });
+
+  it('Should upsert home and about sections in one request', async () => {
+    const result = await landingService.upsertItemsMulti({
+      sections: [
+        {
+          page_key: 'home',
+          items: [
+            { key: 'hero', type: 'text', title: 'Judul Home', content: 'Konten Home', published: true },
+            { key: 'contact_email', type: 'text', content: 'support@example.com', published: true },
+          ],
+        },
+        {
+          page_key: 'about',
+          items: [
+            { key: 'visi', type: 'text', content: 'Visi Kami', published: true },
+            { key: 'misi', type: 'text', content: 'Misi Kami', published: true },
+          ],
+        },
+      ],
+    }, 10);
+
+    expect(result.success).toBe(true);
+    const home = await prisma.landingSection.findUnique({ where: { page_key: 'home' } });
+    const about = await prisma.landingSection.findUnique({ where: { page_key: 'about' } });
+    expect(home).toBeTruthy();
+    expect(about).toBeTruthy();
+
+    const homeItems = await prisma.landingItem.findMany({ where: { section_id: home!.id } });
+    const aboutItems = await prisma.landingItem.findMany({ where: { section_id: about!.id } });
+    expect(homeItems.length).toBe(2);
+    expect(aboutItems.length).toBe(2);
+    expect(homeItems.find(i => i.key === 'hero')?.title).toBe('Judul Home');
+  });
+});
+

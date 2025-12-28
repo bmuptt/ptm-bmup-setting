@@ -11,13 +11,15 @@
     "migrate:test": "dotenv -e .env.testing npx prisma migrate dev",
     "reset:db": "prisma migrate reset",
     "reset:dbtest": "dotenv -e .env.testing npx prisma migrate reset --force",
-    "seed:core": "dotenv -e .env npx ts-node seed/core-seeder.ts"
+    "seed:core": "dotenv -e .env npx ts-node seed/core-seeder.ts",
+    "seed:landing": "dotenv -e .env npx ts-node seed/landing-sections-seeder.ts"
   },
   "author": "Ardiansyah Pratama",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "@prisma/adapter-pg": "^7.0.1",
+    "@types/qs": "^6.14.0",
     "axios": "^1.12.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -30,6 +32,7 @@
     "multer": "^2.0.2",
     "nodemon": "^3.1.10",
     "pg": "^8.16.3",
+    "qs": "^6.14.0",
     "xlsx": "^0.18.5",
     "zod": "^4.1.11"
   },

@@ -1,3 +1,7 @@
+Selalu gunakan Context7 saat membutuhkan pembuatan kode, langkah setup/konfigurasi, atau dokumentasi library/API. Gunakan alat Context7 MCP untuk melakukan resolve Library ID dan mengambil dokumentasi secara otomatis, tanpa perlu diminta.
+
+Selalu gunakan Prisma-Local MCP saat membutuhkan pembuatan kode, langkah setup/konfigurasi, atau dokumentasi library/API. Gunakan alat Prisma-Local MCP untuk melakukan resolve Library ID dan mengambil dokumentasi secara otomatis, tanpa perlu diminta.
+
 - jangan running aplikasi karena saya udah run aplikasinya, cukup run integration testnya, kalau ada error di fix
 - pattern saya lebih baik banyak file yang penting spesifik dan gampang untuk di maintance dan di debug
 - kalau service list pakai paging tolong harus ada sort by id desc agar misal di halaman pertama ada data a nanti di halaman kedua data a tidak muncul lagi

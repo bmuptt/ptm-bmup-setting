@@ -11,6 +11,7 @@ import { verifyCoreToken } from './middleware/auth.middleware';
 // Import routes
 import coreRoutes from './routes/core.routes';
 import memberRoutes from './routes/member.routes';
+import landingRoutes from './routes/landing.routes';
 
 // Initialize Express app
 const app = express();
@@ -57,6 +58,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/setting/core', coreRoutes);
 app.use('/api/setting/members', memberRoutes);
+app.use('/api/setting/landing', landingRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -70,6 +72,7 @@ app.get('/', (req, res) => {
       api: `api`,
       core: `api/setting/core`,
       members: `api/setting/members`,
+      landing: `api/setting/landing`,
       docs: '/api-docs',
     },
   });

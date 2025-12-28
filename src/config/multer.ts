@@ -108,4 +108,7 @@ export const uploadExcel = (fieldName: string) => {
   return excelUpload.single(fieldName);
 };
 
+export const uploadAnyImages = () => {
+  return imageUpload.any();
+};
 export default imageUpload;

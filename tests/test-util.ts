@@ -21,6 +21,8 @@ export class TestHelper {
         // Clean database terlebih dahulu
         await tx.member.deleteMany({});
         await tx.core.deleteMany({});
+        await tx.landingItem.deleteMany({});
+        await tx.landingSection.deleteMany({});
 
         // Reset sequence with error handling (safe in transaction)
         try {
@@ -33,6 +35,16 @@ export class TestHelper {
           await tx.$executeRaw`ALTER SEQUENCE cores_id_seq RESTART WITH 1;`;
         } catch (seqError) {
           // Sequence might not exist, ignore
+        }
+
+        try {
+          await tx.$executeRaw`ALTER SEQUENCE landing_items_id_seq RESTART WITH 1;`;
+        } catch (seqError) {
+        }
+
+        try {
+          await tx.$executeRaw`ALTER SEQUENCE landing_sections_id_seq RESTART WITH 1;`;
+        } catch (seqError) {
         }
 
         // Seed data directly (upsert to prevent conflicts in parallel execution)
@@ -70,10 +82,12 @@ export class TestHelper {
       // Verify database is ready
       const coreCount = await prisma.core.count();
       const memberCount = await prisma.member.count();
+      const sectionCount = await prisma.landingSection.count();
+      const itemCount = await prisma.landingItem.count();
 
-      if (coreCount !== 1 || memberCount !== 0) {
+      if (coreCount !== 1 || memberCount !== 0 || sectionCount !== 0 || itemCount !== 0) {
         console.log(
-          `⚠️ Database state: Core records: ${coreCount}, Member records: ${memberCount}`,
+          `⚠️ Database state: Core records: ${coreCount}, Member records: ${memberCount}, Sections: ${sectionCount}, Items: ${itemCount}`,
         );
       }
     } catch (error) {

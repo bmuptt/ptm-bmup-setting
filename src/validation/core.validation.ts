@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { ResponseError } from '../config/response-error';
+import { MulterError } from 'multer';
 
 // Schema for core update validation
 export const updateCoreSchema = z.object({
@@ -194,13 +196,20 @@ const isValidUrl = (url: string): boolean => {
 // Multer error handling middleware
 export const handleMulterError = (err: any, req: any, res: any, next: any) => {
   if (err) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ errors: ['File too large!'] });
+    if (err instanceof ResponseError) {
+      return next(err);
+    }
+    if (err instanceof MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ errors: ['File too large!'] });
+      }
+      return res.status(400).json({ errors: [err.message] });
     }
     if (err.message === 'Only image files are allowed!') {
       return res.status(400).json({ errors: ['Only image files are allowed!'] });
     }
-    return res.status(400).json({ errors: [err.message] });
+    // For other errors, pass to global error handler
+    return next(err);
   }
   next();
 };
