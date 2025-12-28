@@ -43,5 +43,41 @@ describe('Landing Multi Section Upsert Integration Tests', () => {
     expect(aboutItems.length).toBe(2);
     expect(homeItems.find(i => i.key === 'hero')?.title).toBe('Judul Home');
   });
-});
 
+  it('Should keep image_url when status_image = 0', async () => {
+    await landingService.upsertItemsMulti({
+      sections: [
+        {
+          page_key: 'home',
+          items: [
+            { key: 'tentang_kami', type: 'text', content: 'Tentang kami', published: true },
+          ],
+        },
+      ],
+    }, 1);
+
+    const section = await prisma.landingSection.findUnique({ where: { page_key: 'home' } });
+    const existing = await prisma.landingItem.findFirst({ where: { section_id: section!.id, key: 'tentang_kami' } });
+    const seededImageUrl = 'http://localhost:3200/storage/images/tentang-kami.jpg';
+
+    await prisma.landingItem.update({
+      where: { id: existing!.id },
+      data: { image_url: seededImageUrl },
+    });
+
+    await landingService.upsertItemsMulti({
+      sections: [
+        {
+          page_key: 'home',
+          items: [
+            { key: 'tentang_kami', type: 'text', content: 'Tentang kami update', published: true, status_image: '0' },
+          ],
+        },
+      ],
+    }, 2);
+
+    const after = await prisma.landingItem.findFirst({ where: { section_id: section!.id, key: 'tentang_kami' } });
+    expect(after?.content).toBe('Tentang kami update');
+    expect(after?.image_url).toBe(seededImageUrl);
+  });
+});

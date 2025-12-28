@@ -14,10 +14,13 @@ export class LandingService {
 
     const results: LandingUpsertResultItem[] = [];
     for (const item of payload.items) {
-      // Prepare image update based on status_image and uploaded files
       let finalImageUrl: string | null | undefined = item.image_url ?? undefined;
       const existing = await landingItemRepository.findBySectionAndKey(section.id, item.key);
       const statusImage = item.status_image ? parseInt(item.status_image) : 0;
+
+      if (statusImage === 0 && finalImageUrl === undefined) {
+        finalImageUrl = existing?.image_url;
+      }
       
       if (statusImage === 1) {
         // Check for file in 'image' property (mapped from form-data) OR 'image_key' (legacy)
@@ -192,6 +195,10 @@ export class LandingService {
         let finalImageUrl: string | null | undefined = item.image_url ?? undefined;
         const existing = await landingItemRepository.findBySectionAndKey(section.id, item.key);
         const statusImage = item.status_image ? parseInt(item.status_image) : 0;
+
+        if (statusImage === 0 && finalImageUrl === undefined) {
+          finalImageUrl = existing?.image_url;
+        }
         
         if (statusImage === 1) {
            // Check for file in 'image' property (mapped from form-data) OR 'image_key' (legacy)
