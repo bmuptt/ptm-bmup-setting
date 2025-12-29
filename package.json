@@ -12,7 +12,8 @@
     "reset:db": "prisma migrate reset",
     "reset:dbtest": "dotenv -e .env.testing npx prisma migrate reset --force",
     "seed:core": "dotenv -e .env npx ts-node seed/core-seeder.ts",
-    "seed:landing": "dotenv -e .env npx ts-node seed/landing-sections-seeder.ts"
+    "seed:landing": "dotenv -e .env npx ts-node seed/landing-sections-seeder.ts",
+    "seed:icons": "dotenv -e .env npx ts-node seed/icons-seeder.ts"
   },
   "author": "Ardiansyah Pratama",
   "license": "ISC",

@@ -1,6 +1,7 @@
 import prisma from '../config/database';
+import { LandingItemRepositoryInterface } from './contracts/landing-item.repository.interface';
 
-export class LandingItemRepository {
+export class LandingItemRepository implements LandingItemRepositoryInterface {
   async findBySectionAndKey(section_id: bigint, key: string) {
     return prisma.landingItem.findFirst({
       where: { section_id, key },

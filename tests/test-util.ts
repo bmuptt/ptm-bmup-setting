@@ -23,6 +23,8 @@ export class TestHelper {
         await tx.core.deleteMany({});
         await tx.landingItem.deleteMany({});
         await tx.landingSection.deleteMany({});
+        await tx.activity.deleteMany({});
+        await tx.icon.deleteMany({});
 
         // Reset sequence with error handling (safe in transaction)
         try {
@@ -44,6 +46,16 @@ export class TestHelper {
 
         try {
           await tx.$executeRaw`ALTER SEQUENCE landing_sections_id_seq RESTART WITH 1;`;
+        } catch (seqError) {
+        }
+
+        try {
+          await tx.$executeRaw`ALTER SEQUENCE activities_id_seq RESTART WITH 1;`;
+        } catch (seqError) {
+        }
+
+        try {
+          await tx.$executeRaw`ALTER SEQUENCE icons_id_seq RESTART WITH 1;`;
         } catch (seqError) {
         }
 
@@ -84,10 +96,12 @@ export class TestHelper {
       const memberCount = await prisma.member.count();
       const sectionCount = await prisma.landingSection.count();
       const itemCount = await prisma.landingItem.count();
+      const iconCount = await prisma.icon.count();
+      const activityCount = await prisma.activity.count();
 
-      if (coreCount !== 1 || memberCount !== 0 || sectionCount !== 0 || itemCount !== 0) {
+      if (coreCount !== 1 || memberCount !== 0 || sectionCount !== 0 || itemCount !== 0 || iconCount !== 0 || activityCount !== 0) {
         console.log(
-          `⚠️ Database state: Core records: ${coreCount}, Member records: ${memberCount}, Sections: ${sectionCount}, Items: ${itemCount}`,
+          `⚠️ Database state: Core records: ${coreCount}, Member records: ${memberCount}, Sections: ${sectionCount}, Items: ${itemCount}, Icons: ${iconCount}, Activities: ${activityCount}`,
         );
       }
     } catch (error) {

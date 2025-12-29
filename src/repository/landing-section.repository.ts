@@ -1,6 +1,7 @@
 import prisma from '../config/database';
+import { LandingSectionRepositoryInterface } from './contracts/landing-section.repository.interface';
 
-export class LandingSectionRepository {
+export class LandingSectionRepository implements LandingSectionRepositoryInterface {
   async findByPageKey(page_key: string) {
     return prisma.landingSection.findUnique({
       where: { page_key },

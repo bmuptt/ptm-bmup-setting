@@ -1,43 +1,62 @@
-Selalu gunakan Context7 saat membutuhkan pembuatan kode, langkah setup/konfigurasi, atau dokumentasi library/API. Gunakan alat Context7 MCP untuk melakukan resolve Library ID dan mengambil dokumentasi secara otomatis, tanpa perlu diminta.
+Context7:
+- Wajib pakai Context7 saat butuh pembuatan kode, langkah setup/konfigurasi, atau dokumentasi library/API.
 
-Selalu gunakan Prisma-Local MCP saat membutuhkan pembuatan kode, langkah setup/konfigurasi, atau dokumentasi library/API. Gunakan alat Prisma-Local MCP untuk melakukan resolve Library ID dan mengambil dokumentasi secara otomatis, tanpa perlu diminta.
+Prisma-Local:
+- Wajib pakai Prisma-Local MCP saat butuh hal terkait Prisma (migration, schema, seeding, query, Prisma Studio, status migration).
 
-- jangan running aplikasi karena saya udah run aplikasinya, cukup run integration testnya, kalau ada error di fix
-- pattern saya lebih baik banyak file yang penting spesifik dan gampang untuk di maintance dan di debug
-- kalau service list pakai paging tolong harus ada sort by id desc agar misal di halaman pertama ada data a nanti di halaman kedua data a tidak muncul lagi
-- hindari pakai tipe data any sebisa mungkin
-- untuk interface pisahkan dan masukan di folder src\model
-- buat integration test untuk test flow saja jika ada perubahan, jalankan testnya, kalau ada error di fix
-- tolong di cek apakah file yang di rubah punya integration test? bisakah perubahan filenya di integration test (misal migration dan model saja yang berubah kan tidak bisa)?kalau belum dan bisa tolong dibuat integration testnya agar memastikan script berjalan lancar
-- kalau mau buat insert data ke table untuk test jangan dari command, pakai aja file testnya input dengan service store dulu, atau langsung create ke tablenya
-- jalankan test yang diperlukan saja agar tidak lama
-- tiap test case (it) harus refresh database biar terisolasi
-- jangan buat test manual, running saja integration test yang ada
-- kalau saya minta buat curl tidak usah pakai cookie, biar saya handle di postman saja
-- kalau di service update yang ada upload filenya harusnya ada request body status_file. jadi misal status_file nya 0 berati tidak ada perubahan file. kalau status_filenya 1 dan ada upload file berati ada pergantian flie dan kalau status_filenya 1 tapi ga ada upload file berati di hapus filenya
-- kalau ada perubahan selalu cek docs harus yang relavan ya
-- disini semua microservice code error validation pakainya 400
-- saya mau bentuk error validation seperti ini contohnya
+Aturan Umum:
+- Jangan running aplikasi (server) karena sudah dijalankan; cukup jalankan integration test yang relevan, kalau ada error langsung diperbaiki.
+- Pattern lebih baik banyak file yang spesifik dan mudah di-maintain/debug.
+- Hindari tipe any; kalau perlu gunakan unknown lalu narrowing.
+- Hindari penggunaan console.log karena cepat penuh log docker; kecuali console.error.
+- Field di DB gunakan snake_case (contoh created_at), bukan camelCase.
+- Isi file .env harus sama seperti env.example (jangan menambahkan nilai sensitif ke repo).
+
+Arsitektur dan Struktur Folder:
+- Pattern umum: route, middleware, validation, controller, service, repository.
+- Interface/type taruh di src\\model dan export lewat src\\model\\index.ts.
+- Setiap repository baru wajib punya contract interface di src\\repository\\contracts dan repository harus implements contract tersebut.
+- src\\config: semua config
+- src\\controllers: controllers
+- src\\helper: helper
+- src\\model: interface/type
+- src\\repository: query DB / call service lain
+- src\\routes: routing per modul (user dan role beda file)
+- src\\services: service
+- src\\types: types
+- src\\validation: validation
+- docs: dokumentasi API (contoh curl). Tidak perlu pakai header Cookie.
+
+Validation dan Error:
+- Semua validation error harus status 400.
+- Bentuk error validation harus seperti ini:
 {
-    "errors": [
-        "The email is required!",
-        "The name is required!",
-        "The role is required!"
-    ]
+  "errors": [
+    "The email is required!",
+    "The name is required!",
+    "The role is required!"
+  ]
 }
-- rata rata patternnya: route, middleware, validation, controller, service, repository
-- basic command test: npm run test:local
-- usahakan jangan taruh validation di file controller atau file service
+- Usahakan validation hanya di src\\validation (bukan di controller/service).
 
-folder:
-- src\config: untuk semua config
-- src\controllers: untuk controllers
-- src\helper: untuk helper
-- src\model: untuk interface
-- src\repository: untuk yang berhubungan dengan query atau call service lain
-- src\routes: untuk routing, permodule pisahkan file routing dengan file lain misal untuk route user dan role beda file
-- src\services: untuk service
-- src\types: untuk types
-- src\validation: untuk validation
-- storage: untuk menyimpan file upload
-- docs: untuk buat file contoh curl. tidak perlu pakai header cookie
+Pagination dan Sorting:
+- Kalau ada endpoint list dengan paging: wajib ada sorting stabil dengan id desc (untuk mencegah data pindah halaman/duplikasi).
+- Jika sudah ada sort utama lain: id desc tetap dipakai sebagai tie-breaker.
+
+Upload File:
+- Untuk update yang ada upload file: request body wajib punya status_file.
+- status_file = 0: tidak ada perubahan file.
+- status_file = 1 + ada upload file: ganti file.
+- status_file = 1 + tidak ada upload file: hapus file.
+
+Dokumentasi API:
+- Jangan asal membuat file .md (repo public, hindari info sensitif).
+- Boleh membuat/mengubah docs hanya untuk dokumentasi API di folder docs.
+- Jika tambah/ubah endpoint: wajib update docs modul terkait (contoh curl tanpa Cookie; header minimal Accept + Content-Type bila perlu).
+
+Testing:
+- Setiap test case (it) wajib refresh database biar terisolasi.
+- Kalau ada perubahan, cek apakah perubahan bisa diuji dengan integration test; kalau bisa dan belum ada, buat test flow-nya.
+- Jangan buat test manual; jalankan integration test yang ada.
+- Jalankan test yang diperlukan saja agar tidak lama.
+- Basic command test: npm run test:local
