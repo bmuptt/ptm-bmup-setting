@@ -12,6 +12,7 @@ import { verifyCoreToken } from './middleware/auth.middleware';
 import coreRoutes from './routes/core.routes';
 import memberRoutes from './routes/member.routes';
 import landingRoutes from './routes/landing.routes';
+import aboutTimelineRoutes from './routes/about-timeline.routes';
 
 // Initialize Express app
 const app = express();
@@ -59,6 +60,7 @@ app.get('/health', (req, res) => {
 app.use('/api/setting/core', coreRoutes);
 app.use('/api/setting/members', memberRoutes);
 app.use('/api/setting/landing', landingRoutes);
+app.use('/api/setting/about-timelines', aboutTimelineRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

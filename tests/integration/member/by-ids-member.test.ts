@@ -22,7 +22,7 @@ jest.mock('../../../src/middleware/auth.middleware', () => ({
     };
     req.menu = [];
     next();
-  }
+  },
 }));
  
 describe('Member By IDs API Integration Tests', () => {

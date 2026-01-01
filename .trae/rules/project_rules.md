@@ -10,6 +10,7 @@ Aturan Umum:
 - Hindari tipe any; kalau perlu gunakan unknown lalu narrowing.
 - Hindari penggunaan console.log karena cepat penuh log docker; kecuali console.error.
 - Field di DB gunakan snake_case (contoh created_at), bukan camelCase.
+- Kalau menambahkan table baru di schema Prisma, wajib tambahkan field created_by dan updated_by (default 0 untuk id by system).
 - Isi file .env harus sama seperti env.example (jangan menambahkan nilai sensitif ke repo).
 
 Arsitektur dan Struktur Folder:
@@ -52,7 +53,8 @@ Upload File:
 Dokumentasi API:
 - Jangan asal membuat file .md (repo public, hindari info sensitif).
 - Boleh membuat/mengubah docs hanya untuk dokumentasi API di folder docs.
-- Jika tambah/ubah endpoint: wajib update docs modul terkait (contoh curl tanpa Cookie; header minimal Accept + Content-Type bila perlu).
+- Jika tambah endpoint baru: wajib buat file docs baru khusus modul tersebut di folder docs (jangan menambahkannya ke file docs modul lain).
+- Jika ubah endpoint yang sudah ada: wajib update file docs modul terkait (contoh curl tanpa Cookie; header minimal Accept + Content-Type bila perlu).
 
 Testing:
 - Setiap test case (it) wajib refresh database biar terisolasi.

@@ -27,7 +27,7 @@ jest.mock('../../../src/middleware/auth.middleware', () => ({
     };
     (req as { menu?: unknown[] }).menu = [];
     next();
-  }
+  },
 }));
 
 describe('Member Load More API Integration Tests', () => {

@@ -6,6 +6,10 @@ import app from '../src/main';
 
 dotenv.config();
 
+declare global {
+  var __testMigrationsApplied: boolean | undefined;
+}
+
 export class TestHelper {
   /**
    * Migrate dan seed ulang database untuk setiap test case
@@ -15,12 +19,18 @@ export class TestHelper {
    */
   static async refreshDatabase() {
     try {
+      if (!globalThis.__testMigrationsApplied) {
+        execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+        globalThis.__testMigrationsApplied = true;
+      }
+
       // Use transaction to ensure atomic operations and prevent conflicts in parallel execution
       // All operations are wrapped in a single transaction for consistency
       await prisma.$transaction(async (tx) => {
         // Clean database terlebih dahulu
         await tx.member.deleteMany({});
         await tx.core.deleteMany({});
+        await tx.aboutTimeline.deleteMany({});
         await tx.landingItem.deleteMany({});
         await tx.landingSection.deleteMany({});
         await tx.activity.deleteMany({});
@@ -37,6 +47,11 @@ export class TestHelper {
           await tx.$executeRaw`ALTER SEQUENCE cores_id_seq RESTART WITH 1;`;
         } catch (seqError) {
           // Sequence might not exist, ignore
+        }
+
+        try {
+          await tx.$executeRaw`ALTER SEQUENCE about_timelines_id_seq RESTART WITH 1;`;
+        } catch (seqError) {
         }
 
         try {
@@ -98,14 +113,16 @@ export class TestHelper {
       const itemCount = await prisma.landingItem.count();
       const iconCount = await prisma.icon.count();
       const activityCount = await prisma.activity.count();
+      const aboutTimelineCount = await prisma.aboutTimeline.count();
 
-      if (coreCount !== 1 || memberCount !== 0 || sectionCount !== 0 || itemCount !== 0 || iconCount !== 0 || activityCount !== 0) {
+      if (coreCount !== 1 || memberCount !== 0 || sectionCount !== 0 || itemCount !== 0 || iconCount !== 0 || activityCount !== 0 || aboutTimelineCount !== 0) {
         console.log(
-          `⚠️ Database state: Core records: ${coreCount}, Member records: ${memberCount}, Sections: ${sectionCount}, Items: ${itemCount}, Icons: ${iconCount}, Activities: ${activityCount}`,
+          `⚠️ Database state: Core records: ${coreCount}, Member records: ${memberCount}, About timelines: ${aboutTimelineCount}, Sections: ${sectionCount}, Items: ${itemCount}, Icons: ${iconCount}, Activities: ${activityCount}`,
         );
       }
-    } catch (error) {
-      console.error('❌ Error refreshing database:', error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('❌ Error refreshing database:', message);
       throw error;
     }
   }
@@ -120,8 +137,9 @@ export class TestHelper {
       await prisma.core.deleteMany({});
 
       console.log('🧹 Database cleaned up');
-    } catch (error) {
-      console.error('❌ Error cleaning up database:', error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('❌ Error cleaning up database:', message);
       // Don't throw error during cleanup to avoid masking test failures
     }
   }
@@ -133,8 +151,9 @@ export class TestHelper {
     try {
       await prisma.$disconnect();
       console.log('🔌 Database connection closed');
-    } catch (error) {
-      console.error('❌ Error closing database connection:', error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('❌ Error closing database connection:', message);
     }
   }
 
@@ -181,8 +200,9 @@ export class TestHelper {
       }
       
       console.log('✅ All resources cleaned up');
-    } catch (error) {
-      console.error('❌ Error during cleanup:', error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('❌ Error during cleanup:', message);
     }
   }
 }
@@ -195,8 +215,9 @@ export class CoreTable {
   static async callCoreSeed() {
     try {
       execSync('npm run seed:core', { stdio: 'inherit' });
-    } catch (error) {
-      console.error('Error running seed:core:', error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Error running seed:core:', message);
     }
   }
 
