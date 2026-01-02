@@ -32,6 +32,16 @@ export class ActivityService {
     };
   }
 
+  async listActivitiesLanding() {
+    const activities = await activityRepository.findManyPublishedWithIconOrdered();
+    return {
+      success: true,
+      data: activities,
+      message: 'Activities retrieved successfully',
+      count: activities.length,
+    };
+  }
+
   async detailActivity(id: bigint) {
     const activity = await activityRepository.findByIdWithIcon(id);
     if (!activity) {

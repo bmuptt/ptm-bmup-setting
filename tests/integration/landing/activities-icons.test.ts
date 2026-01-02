@@ -113,6 +113,57 @@ describe('Landing Icons & Activities API Integration Tests', () => {
     expect(titlesAfter).toEqual(['A3', 'A1', 'A2']);
   });
 
+  it('GET /api/setting/landing/activities/landing returns only published activities', async () => {
+    await seedIcons();
+    const icon = await prisma.icon.findFirst({ where: { name: 'mdi-table-tennis' } });
+    expect(icon).toBeTruthy();
+
+    const a1 = await supertest(app)
+      .post('/api/setting/landing/activities')
+      .set('Cookie', 'token=mock-token-for-testing')
+      .send({
+        icon_id: icon!.id.toString(),
+        title: 'P1',
+        subtitle: 'S1',
+        is_published: true,
+      });
+    expect(a1.status).toBe(201);
+
+    const a2 = await supertest(app)
+      .post('/api/setting/landing/activities')
+      .set('Cookie', 'token=mock-token-for-testing')
+      .send({
+        icon_id: icon!.id.toString(),
+        title: 'DRAFT',
+        subtitle: 'S2',
+        is_published: false,
+      });
+    expect(a2.status).toBe(201);
+
+    const a3 = await supertest(app)
+      .post('/api/setting/landing/activities')
+      .set('Cookie', 'token=mock-token-for-testing')
+      .send({
+        icon_id: icon!.id.toString(),
+        title: 'P2',
+        subtitle: 'S3',
+        is_published: true,
+      });
+    expect(a3.status).toBe(201);
+
+    const res = await supertest(app).get('/api/setting/landing/activities/landing');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('success', true);
+    expect(res.body).toHaveProperty('count', 2);
+
+    const titles = (res.body.data as { title: string }[]).map((i) => i.title);
+    expect(titles).toEqual(['P1', 'P2']);
+
+    expect(res.body.data[0]).toHaveProperty('icon');
+    expect(res.body.data[0].icon).toHaveProperty('id', Number(icon!.id));
+  });
+
   it('GET /api/setting/landing/activities/:id returns activity detail', async () => {
     await seedIcons();
     const icon = await prisma.icon.findFirst({ where: { name: 'mdi-table-tennis' } });

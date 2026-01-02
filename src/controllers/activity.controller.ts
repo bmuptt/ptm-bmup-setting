@@ -23,6 +23,15 @@ export default class ActivityController {
     }
   }
 
+  async listActivitiesLanding(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await activityService.listActivitiesLanding();
+      res.json(serializeData(result));
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async detailActivity(req: Request, res: Response, next: NextFunction) {
     try {
       const id = res.locals.activityId as bigint;

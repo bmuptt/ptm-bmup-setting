@@ -54,6 +54,21 @@ export interface ActivityRepositoryInterface {
     }>[]
   >;
 
+  findManyPublishedWithIconOrdered(): Promise<
+    Prisma.ActivityGetPayload<{
+      include: {
+        icon: {
+          select: {
+            id: true;
+            name: true;
+            label: true;
+            is_active: true;
+          };
+        };
+      };
+    }>[]
+  >;
+
   getMaxSortOrder(): Promise<number | null>;
 
   countByIds(ids: bigint[]): Promise<number>;

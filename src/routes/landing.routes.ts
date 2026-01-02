@@ -41,7 +41,13 @@ router.get(
 );
 
 router.get(
+  '/activities/landing',
+  activityController.listActivitiesLanding.bind(activityController)
+);
+
+router.get(
   '/activities',
+  verifyCoreToken,
   activityController.listActivities.bind(activityController)
 );
 

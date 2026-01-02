@@ -75,6 +75,26 @@ export class ActivityRepository implements ActivityRepositoryInterface {
     });
   }
 
+  async findManyPublishedWithIconOrdered() {
+    return prisma.activity.findMany({
+      where: { is_published: true },
+      include: {
+        icon: {
+          select: {
+            id: true,
+            name: true,
+            label: true,
+            is_active: true,
+          },
+        },
+      },
+      orderBy: [
+        { sort_order: { sort: 'asc', nulls: 'last' } },
+        { id: 'desc' },
+      ],
+    });
+  }
+
   async getMaxSortOrder() {
     const agg = await prisma.activity.aggregate({
       _max: { sort_order: true },

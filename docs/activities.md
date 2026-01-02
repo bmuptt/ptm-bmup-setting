@@ -41,6 +41,66 @@ Response (200):
 }
 ```
 
+## GET List Published Activities (Landing)
+
+Endpoint:
+- GET `http://localhost:3200/api/setting/landing/activities/landing`
+
+Catatan:
+- Hanya mengembalikan data `is_published=true`.
+
+Sorting:
+- `sort_order` asc (null paling akhir), lalu `id` desc
+
+Curl:
+```bash
+curl -X GET 'http://localhost:3200/api/setting/landing/activities/landing' \
+  -H 'Accept: application/json'
+```
+
+Response (200):
+```json
+{
+  "success": true,
+  "message": "Activities retrieved successfully",
+  "count": 2,
+  "data": [
+    {
+      "id": 1,
+      "icon_id": 1,
+      "title": "A1",
+      "subtitle": "S1",
+      "is_published": true,
+      "sort_order": 1,
+      "created_at": "2025-12-28T00:00:00.000Z",
+      "updated_at": "2025-12-28T00:00:00.000Z",
+      "icon": {
+        "id": 1,
+        "name": "mdi-table-tennis",
+        "label": "Table Tennis",
+        "is_active": true
+      }
+    },
+    {
+      "id": 3,
+      "icon_id": 1,
+      "title": "A3",
+      "subtitle": "S3",
+      "is_published": true,
+      "sort_order": 3,
+      "created_at": "2025-12-28T00:00:00.000Z",
+      "updated_at": "2025-12-28T00:00:00.000Z",
+      "icon": {
+        "id": 1,
+        "name": "mdi-table-tennis",
+        "label": "Table Tennis",
+        "is_active": true
+      }
+    }
+  ]
+}
+```
+
 ## GET Detail Activity
 
 Endpoint:

@@ -18,6 +18,38 @@ export class MemberRepository implements MemberRepositoryInterface {
     });
   }
 
+  async findBasicById(id: number) {
+    return await prisma.member.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        photo: true,
+        active: true,
+      },
+    });
+  }
+
+  async findBasicByIds(ids: number[]) {
+    const safeIds = Array.from(new Set(ids)).filter((n) => Number.isInteger(n) && n > 0);
+    if (safeIds.length === 0) {
+      return [];
+    }
+
+    return await prisma.member.findMany({
+      where: { id: { in: safeIds } },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        photo: true,
+        active: true,
+      },
+      orderBy: [{ id: 'desc' }],
+    });
+  }
+
   /**
    * Get all members with pagination, search, filtering, and custom ordering
    * @param page - Page number

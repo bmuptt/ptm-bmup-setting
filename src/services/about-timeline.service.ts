@@ -1,32 +1,24 @@
-import { Prisma } from '@prisma/client';
 import { ResponseError } from '../config/response-error';
 import { AboutTimelineCreatePayload, AboutTimelineUpdatePayload } from '../model';
 import aboutTimelineRepository from '../repository/about-timeline.repository';
 
 export class AboutTimelineService {
   async createAboutTimeline(payload: AboutTimelineCreatePayload, userId: number | undefined) {
-    try {
-      const actor = BigInt(userId ?? 0);
-      const created = await aboutTimelineRepository.create({
-        year: payload.year,
-        title: payload.title,
-        description: payload.description,
-        is_published: payload.is_published ?? true,
-        created_by: actor,
-        updated_by: actor,
-      });
+    const actor = BigInt(userId ?? 0);
+    const created = await aboutTimelineRepository.create({
+      year: payload.year,
+      title: payload.title,
+      description: payload.description,
+      is_published: payload.is_published ?? true,
+      created_by: actor,
+      updated_by: actor,
+    });
 
-      return {
-        success: true,
-        data: created,
-        message: 'About timeline created successfully',
-      };
-    } catch (err: unknown) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-        throw new ResponseError(400, 'The year is already exists!');
-      }
-      throw err;
-    }
+    return {
+      success: true,
+      data: created,
+      message: 'About timeline created successfully',
+    };
   }
 
   async listAboutTimelinesLanding() {
@@ -68,27 +60,20 @@ export class AboutTimelineService {
       throw new ResponseError(404, 'About timeline not found');
     }
 
-    try {
-      const actor = BigInt(userId ?? 0);
-      const updated = await aboutTimelineRepository.updateById(id, {
-        year: payload.year,
-        title: payload.title,
-        description: payload.description,
-        is_published: payload.is_published ?? existing.is_published,
-        updated_by: actor,
-      });
+    const actor = BigInt(userId ?? 0);
+    const updated = await aboutTimelineRepository.updateById(id, {
+      year: payload.year,
+      title: payload.title,
+      description: payload.description,
+      is_published: payload.is_published ?? existing.is_published,
+      updated_by: actor,
+    });
 
-      return {
-        success: true,
-        data: updated,
-        message: 'About timeline updated successfully',
-      };
-    } catch (err: unknown) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-        throw new ResponseError(400, 'The year is already exists!');
-      }
-      throw err;
-    }
+    return {
+      success: true,
+      data: updated,
+      message: 'About timeline updated successfully',
+    };
   }
 
   async deleteAboutTimeline(id: bigint) {
