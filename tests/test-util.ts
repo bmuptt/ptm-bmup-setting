@@ -32,6 +32,7 @@ export class TestHelper {
         await tx.core.deleteMany({});
         await tx.aboutTimeline.deleteMany({});
         await tx.aboutTeamMember.deleteMany({});
+        await tx.trainingSchedule.deleteMany({});
         await tx.landingItem.deleteMany({});
         await tx.landingSection.deleteMany({});
         await tx.activity.deleteMany({});
@@ -57,6 +58,11 @@ export class TestHelper {
 
         try {
           await tx.$executeRaw`ALTER SEQUENCE about_team_members_id_seq RESTART WITH 1;`;
+        } catch (seqError) {
+        }
+
+        try {
+          await tx.$executeRaw`ALTER SEQUENCE training_schedules_id_seq RESTART WITH 1;`;
         } catch (seqError) {
         }
 
@@ -121,10 +127,21 @@ export class TestHelper {
       const activityCount = await prisma.activity.count();
       const aboutTimelineCount = await prisma.aboutTimeline.count();
       const aboutTeamMemberCount = await prisma.aboutTeamMember.count();
+      const trainingScheduleCount = await prisma.trainingSchedule.count();
 
-      if (coreCount !== 1 || memberCount !== 0 || sectionCount !== 0 || itemCount !== 0 || iconCount !== 0 || activityCount !== 0 || aboutTimelineCount !== 0 || aboutTeamMemberCount !== 0) {
+      if (
+        coreCount !== 1
+        || memberCount !== 0
+        || sectionCount !== 0
+        || itemCount !== 0
+        || iconCount !== 0
+        || activityCount !== 0
+        || aboutTimelineCount !== 0
+        || aboutTeamMemberCount !== 0
+        || trainingScheduleCount !== 0
+      ) {
         console.log(
-          `⚠️ Database state: Core records: ${coreCount}, Member records: ${memberCount}, About timelines: ${aboutTimelineCount}, About team members: ${aboutTeamMemberCount}, Sections: ${sectionCount}, Items: ${itemCount}, Icons: ${iconCount}, Activities: ${activityCount}`,
+          `⚠️ Database state: Core records: ${coreCount}, Member records: ${memberCount}, About timelines: ${aboutTimelineCount}, About team members: ${aboutTeamMemberCount}, Training schedules: ${trainingScheduleCount}, Sections: ${sectionCount}, Items: ${itemCount}, Icons: ${iconCount}, Activities: ${activityCount}`,
         );
       }
     } catch (error: unknown) {

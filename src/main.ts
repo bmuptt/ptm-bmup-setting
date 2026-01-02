@@ -14,6 +14,7 @@ import memberRoutes from './routes/member.routes';
 import landingRoutes from './routes/landing.routes';
 import aboutTimelineRoutes from './routes/about-timeline.routes';
 import aboutTeamMemberRoutes from './routes/about-team-member.routes';
+import trainingScheduleRoutes from './routes/training-schedule.routes';
 
 // Initialize Express app
 const app = express();
@@ -63,6 +64,7 @@ app.use('/api/setting/members', memberRoutes);
 app.use('/api/setting/landing', landingRoutes);
 app.use('/api/setting/about-timelines', aboutTimelineRoutes);
 app.use('/api/setting/about-team-members', aboutTeamMemberRoutes);
+app.use('/api/setting/training-schedules', trainingScheduleRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
