@@ -162,3 +162,18 @@ model TrainingSchedule {
   @@index([member_id])
   @@map("training_schedules")
 }
+
+model GalleryItem {
+  id            BigInt   @id @default(autoincrement()) @db.BigInt
+  image_url     String   @db.VarChar(2048)
+  title         String   @db.VarChar(255)
+  display_order Int      @default(0)
+  is_published  Boolean  @default(false)
+  created_by    BigInt   @default(0) @db.BigInt
+  updated_by    BigInt   @default(0) @db.BigInt
+  created_at    DateTime @default(now()) @db.Timestamptz
+  updated_at    DateTime @updatedAt @db.Timestamptz
+
+  @@index([is_published, display_order, id])
+  @@map("gallery_items")
+}

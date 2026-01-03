@@ -6,7 +6,6 @@ import methodOverride from 'method-override';
 import { config } from './config/environment';
 import { createRateLimit } from './middleware/rateLimit.middleware';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
-import { verifyCoreToken } from './middleware/auth.middleware';
 
 // Import routes
 import coreRoutes from './routes/core.routes';
@@ -15,6 +14,7 @@ import landingRoutes from './routes/landing.routes';
 import aboutTimelineRoutes from './routes/about-timeline.routes';
 import aboutTeamMemberRoutes from './routes/about-team-member.routes';
 import trainingScheduleRoutes from './routes/training-schedule.routes';
+import galleryItemRoutes from './routes/gallery-item.routes';
 
 // Initialize Express app
 const app = express();
@@ -65,6 +65,7 @@ app.use('/api/setting/landing', landingRoutes);
 app.use('/api/setting/about-timelines', aboutTimelineRoutes);
 app.use('/api/setting/about-team-members', aboutTeamMemberRoutes);
 app.use('/api/setting/training-schedules', trainingScheduleRoutes);
+app.use('/api/setting/gallery-items', galleryItemRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

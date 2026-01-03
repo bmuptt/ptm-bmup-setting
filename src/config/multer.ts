@@ -8,9 +8,10 @@ const storageDir = path.join(process.cwd(), 'storage');
 const imagesDir = path.join(storageDir, 'images');
 const logosDir = path.join(imagesDir, 'logos');
 const membersDir = path.join(imagesDir, 'members');
+const galleryDir = path.join(imagesDir, 'gallery');
 const documentsDir = path.join(storageDir, 'documents');
 
-const directories = [storageDir, imagesDir, logosDir, membersDir, documentsDir];
+const directories = [storageDir, imagesDir, logosDir, membersDir, galleryDir, documentsDir];
 directories.forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -22,11 +23,14 @@ const imageStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Determine destination based on field name or custom logic
     let destination = imagesDir; // default
+    const baseUrl = (req as unknown as { baseUrl?: string }).baseUrl;
     
     if (file.fieldname === 'logo') {
       destination = logosDir;
     } else if (file.fieldname === 'photo' || file.fieldname === 'avatar') {
       destination = membersDir;
+    } else if (file.fieldname === 'image' && baseUrl?.includes('/gallery-items')) {
+      destination = galleryDir;
     }
     
     cb(null, destination);

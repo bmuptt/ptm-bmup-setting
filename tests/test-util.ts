@@ -33,6 +33,7 @@ export class TestHelper {
         await tx.aboutTimeline.deleteMany({});
         await tx.aboutTeamMember.deleteMany({});
         await tx.trainingSchedule.deleteMany({});
+        await tx.galleryItem.deleteMany({});
         await tx.landingItem.deleteMany({});
         await tx.landingSection.deleteMany({});
         await tx.activity.deleteMany({});
@@ -63,6 +64,11 @@ export class TestHelper {
 
         try {
           await tx.$executeRaw`ALTER SEQUENCE training_schedules_id_seq RESTART WITH 1;`;
+        } catch (seqError) {
+        }
+
+        try {
+          await tx.$executeRaw`ALTER SEQUENCE gallery_items_id_seq RESTART WITH 1;`;
         } catch (seqError) {
         }
 
@@ -128,6 +134,7 @@ export class TestHelper {
       const aboutTimelineCount = await prisma.aboutTimeline.count();
       const aboutTeamMemberCount = await prisma.aboutTeamMember.count();
       const trainingScheduleCount = await prisma.trainingSchedule.count();
+      const galleryItemCount = await prisma.galleryItem.count();
 
       if (
         coreCount !== 1
@@ -139,9 +146,10 @@ export class TestHelper {
         || aboutTimelineCount !== 0
         || aboutTeamMemberCount !== 0
         || trainingScheduleCount !== 0
+        || galleryItemCount !== 0
       ) {
         console.log(
-          `⚠️ Database state: Core records: ${coreCount}, Member records: ${memberCount}, About timelines: ${aboutTimelineCount}, About team members: ${aboutTeamMemberCount}, Training schedules: ${trainingScheduleCount}, Sections: ${sectionCount}, Items: ${itemCount}, Icons: ${iconCount}, Activities: ${activityCount}`,
+          `⚠️ Database state: Core records: ${coreCount}, Member records: ${memberCount}, About timelines: ${aboutTimelineCount}, About team members: ${aboutTeamMemberCount}, Training schedules: ${trainingScheduleCount}, Gallery items: ${galleryItemCount}, Sections: ${sectionCount}, Items: ${itemCount}, Icons: ${iconCount}, Activities: ${activityCount}`,
         );
       }
     } catch (error: unknown) {
