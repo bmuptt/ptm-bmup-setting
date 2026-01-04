@@ -34,6 +34,7 @@ export class TestHelper {
         await tx.aboutTeamMember.deleteMany({});
         await tx.trainingSchedule.deleteMany({});
         await tx.galleryItem.deleteMany({});
+        await tx.blogPost.deleteMany({});
         await tx.landingItem.deleteMany({});
         await tx.landingSection.deleteMany({});
         await tx.activity.deleteMany({});
@@ -135,6 +136,7 @@ export class TestHelper {
       const aboutTeamMemberCount = await prisma.aboutTeamMember.count();
       const trainingScheduleCount = await prisma.trainingSchedule.count();
       const galleryItemCount = await prisma.galleryItem.count();
+      const blogPostCount = await prisma.blogPost.count();
 
       if (
         coreCount !== 1
@@ -147,9 +149,10 @@ export class TestHelper {
         || aboutTeamMemberCount !== 0
         || trainingScheduleCount !== 0
         || galleryItemCount !== 0
+        || blogPostCount !== 0
       ) {
         console.log(
-          `⚠️ Database state: Core records: ${coreCount}, Member records: ${memberCount}, About timelines: ${aboutTimelineCount}, About team members: ${aboutTeamMemberCount}, Training schedules: ${trainingScheduleCount}, Gallery items: ${galleryItemCount}, Sections: ${sectionCount}, Items: ${itemCount}, Icons: ${iconCount}, Activities: ${activityCount}`,
+          `⚠️ Database state: Core records: ${coreCount}, Member records: ${memberCount}, About timelines: ${aboutTimelineCount}, About team members: ${aboutTeamMemberCount}, Training schedules: ${trainingScheduleCount}, Gallery items: ${galleryItemCount}, Blog posts: ${blogPostCount}, Sections: ${sectionCount}, Items: ${itemCount}, Icons: ${iconCount}, Activities: ${activityCount}`,
         );
       }
     } catch (error: unknown) {

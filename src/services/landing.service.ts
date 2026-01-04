@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { config } from '../config/environment';
 import { ResponseError } from '../config/response-error';
+import { sanitizeHtml } from '../helper/html-sanitize.helper';
  
 
 export class LandingService {
@@ -61,7 +62,7 @@ export class LandingService {
       const saved = await landingItemRepository.upsert(section.id, item.key, {
         type: item.type ?? null,
         title: item.title ?? null,
-        content: item.content ?? null,
+        content: item.content === null || item.content === undefined ? null : sanitizeHtml(item.content),
         image_url: finalImageUrl ?? null,
         button_label: item.button_label ?? null,
         button_url: item.button_url ?? null,
@@ -239,7 +240,7 @@ export class LandingService {
         const saved = await landingItemRepository.upsert(section.id, item.key, {
           type: item.type ?? null,
           title: item.title ?? null,
-          content: item.content ?? null,
+          content: item.content === null || item.content === undefined ? null : sanitizeHtml(item.content),
           image_url: finalImageUrl ?? null,
           button_label: item.button_label ?? null,
           button_url: item.button_url ?? null,

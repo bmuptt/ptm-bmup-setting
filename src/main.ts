@@ -15,6 +15,7 @@ import aboutTimelineRoutes from './routes/about-timeline.routes';
 import aboutTeamMemberRoutes from './routes/about-team-member.routes';
 import trainingScheduleRoutes from './routes/training-schedule.routes';
 import galleryItemRoutes from './routes/gallery-item.routes';
+import blogPostRoutes from './routes/blog-post.routes';
 
 // Initialize Express app
 const app = express();
@@ -66,6 +67,7 @@ app.use('/api/setting/about-timelines', aboutTimelineRoutes);
 app.use('/api/setting/about-team-members', aboutTeamMemberRoutes);
 app.use('/api/setting/training-schedules', trainingScheduleRoutes);
 app.use('/api/setting/gallery-items', galleryItemRoutes);
+app.use('/api/setting/blog-posts', blogPostRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

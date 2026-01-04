@@ -9,9 +9,22 @@ const imagesDir = path.join(storageDir, 'images');
 const logosDir = path.join(imagesDir, 'logos');
 const membersDir = path.join(imagesDir, 'members');
 const galleryDir = path.join(imagesDir, 'gallery');
+const blogDir = path.join(imagesDir, 'blog');
+const blogCoversDir = path.join(blogDir, 'covers');
+const blogOgImagesDir = path.join(blogDir, 'og-images');
 const documentsDir = path.join(storageDir, 'documents');
 
-const directories = [storageDir, imagesDir, logosDir, membersDir, galleryDir, documentsDir];
+const directories = [
+  storageDir,
+  imagesDir,
+  logosDir,
+  membersDir,
+  galleryDir,
+  blogDir,
+  blogCoversDir,
+  blogOgImagesDir,
+  documentsDir,
+];
 directories.forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -31,6 +44,12 @@ const imageStorage = multer.diskStorage({
       destination = membersDir;
     } else if (file.fieldname === 'image' && baseUrl?.includes('/gallery-items')) {
       destination = galleryDir;
+    } else if (baseUrl?.includes('/blog-posts')) {
+      if (file.fieldname === 'cover') {
+        destination = blogCoversDir;
+      } else if (file.fieldname === 'og_image') {
+        destination = blogOgImagesDir;
+      }
     }
     
     cb(null, destination);

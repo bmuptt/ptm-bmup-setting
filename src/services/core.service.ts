@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { config } from '../config/environment';
 import { ResponseError } from '../config/response-error';
+import { sanitizeHtml } from '../helper/html-sanitize.helper';
 
 export class CoreService {
   /**
@@ -40,6 +41,7 @@ export class CoreService {
       primary_color?: string;
       secondary_color?: string;
       status_file?: string;
+      _method?: string;
     },
     file?: Express.Multer.File,
     userId?: number
@@ -97,16 +99,17 @@ export class CoreService {
     }
     // status_file = 0: no change - keep existing logo
 
-    // Update data dengan logo filename
-    const finalUpdateData: any = {
-      ...data,
+    const finalUpdateData: Parameters<typeof coreRepository.update>[1] = {
       logo: logoFileName,
-      updated_by: userId || 0, // Use authenticated user ID or default to 0
+      updated_by: userId ?? 0,
     };
 
-    // Remove status_file and _method from update data
-    delete finalUpdateData.status_file;
-    delete finalUpdateData._method;
+    if (data.name !== undefined) finalUpdateData.name = data.name;
+    if (data.description !== undefined) finalUpdateData.description = sanitizeHtml(data.description);
+    if (data.address !== undefined) finalUpdateData.address = data.address;
+    if (data.maps !== undefined) finalUpdateData.maps = data.maps;
+    if (data.primary_color !== undefined) finalUpdateData.primary_color = data.primary_color;
+    if (data.secondary_color !== undefined) finalUpdateData.secondary_color = data.secondary_color;
 
     const updatedCore = await coreRepository.update(0, finalUpdateData);
 
